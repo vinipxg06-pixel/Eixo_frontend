@@ -1,0 +1,316 @@
+/* --- Variáveis de Cores e Fontes --- */
+:root {
+    --bg-left: #0c0c0c;
+    --bg-right: #050505;
+    --text-primary: #ffffff;
+    --text-secondary: #888888;
+    --accent-red: #d50000;
+    --input-bg: #151515;
+    --input-border: #2a2a2a;
+    --font-heading: 'Teko', sans-serif;
+    --font-body: 'Inter', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-body);
+    color: var(--text-primary);
+    height: 100vh;
+    overflow: hidden; /* Evita scroll na janela principal */
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* =========================================
+   Painel Esquerdo (Grid e Informação) 
+   ========================================= */
+.left-panel {
+    width: 50%;
+    background-color: var(--bg-left);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    
+    /* Efeito de grelha de fundo (grid pattern) */
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+.top-accent-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 4px;
+    background-color: var(--accent-red);
+}
+
+.content-left {
+    max-width: 450px;
+    text-align: center;
+    margin-top: -50px;
+}
+
+/* Estilo temporário para o logo em texto */
+.logo-placeholder {
+    margin-bottom: 70px;
+}
+.logo-placeholder h2 {
+    font-family: var(--font-heading);
+    font-size: 4rem;
+    font-style: italic;
+    letter-spacing: 2px;
+    line-height: 1;
+}
+.logo-placeholder span {
+    font-size: 0.55rem;
+    color: var(--text-primary);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.left-panel h1 {
+    font-family: var(--font-heading);
+    font-size: 3.5rem;
+    letter-spacing: 3px;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.description {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 50px;
+}
+
+.feature-list {
+    list-style: none;
+    text-align: left;
+    margin-left: 60px;
+}
+
+.feature-list li {
+    color: var(--text-secondary);
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    font-size: 0.95rem;
+}
+
+.feature-list li span {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background-color: var(--accent-red);
+    margin-right: 15px;
+}
+
+.cookie-btn {
+    position: absolute;
+    bottom: 30px;
+    left: 30px;
+    background-color: #1a1a1a;
+    color: var(--text-secondary);
+    border: 1px solid #2a2a2a;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+}
+
+.cookie-btn:hover {
+    background-color: #2a2a2a;
+    color: var(--text-primary);
+}
+
+/* =========================================
+   Painel Direito (Login) 
+   ========================================= */
+.right-panel {
+    width: 50%;
+    background-color: var(--bg-right);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 420px;
+    padding: 40px;
+}
+
+.right-panel h2 {
+    font-family: var(--font-heading);
+    font-size: 3.5rem;
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    margin-bottom: 40px;
+    font-size: 0.95rem;
+}
+
+.input-group {
+    margin-bottom: 25px;
+}
+
+.input-group label {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.input-group input {
+    width: 100%;
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--text-primary);
+    padding: 14px 16px;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-family: var(--font-body);
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.input-group input:focus {
+    border-color: #555555;
+}
+
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper i {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #555555;
+    cursor: pointer;
+}
+
+.forgot-password {
+    text-align: right;
+    margin-bottom: 30px;
+    margin-top: -10px;
+}
+
+.forgot-password a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: color 0.3s;
+}
+
+.forgot-password a:hover {
+    color: var(--text-primary);
+}
+
+.btn-login {
+    width: 100%;
+    background-color: var(--accent-red);
+    color: var(--text-primary);
+    border: none;
+    padding: 16px;
+    font-size: 1.3rem;
+    font-family: var(--font-heading);
+    letter-spacing: 2px;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    transition: background-color 0.3s;
+}
+
+.btn-login:hover {
+    background-color: #b00000;
+}
+
+.footer-text {
+    text-align: center;
+    color: #333333;
+    font-size: 0.75rem;
+    margin-top: 80px;
+    font-family: monospace;
+}
+
+.help-btn {
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background-color: var(--text-primary);
+    color: var(--bg-right);
+    border: none;
+    font-size: 1.3rem;
+    font-family: var(--font-body);
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    transition: transform 0.2s;
+}
+
+.help-btn:hover {
+    transform: scale(1.05);
+}
+
+/* =========================================
+   Responsividade (Para Ecrãs Menores)
+   ========================================= */
+@media (max-width: 960px) {
+    body {
+        overflow: auto;
+    }
+    .container {
+        flex-direction: column;
+        height: auto;
+    }
+    .left-panel, .right-panel {
+        width: 100%;
+        min-height: 100vh;
+    }
+    .left-panel {
+        padding: 50px 20px;
+    }
+    .cookie-btn {
+        position: relative;
+        bottom: 0;
+        left: 0;
+        margin-top: 40px;
+    }
+    .content-left {
+        margin-top: 0;
+    }
+}
