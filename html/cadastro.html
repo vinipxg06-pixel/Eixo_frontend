@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang = "pt-BR"></html>
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name = "viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eixo | Sistema de Gerenciamento</title>
+    <link rel = "stylesheet" href="../css/style.css">
+    <script src = "telaDeCadastro.js" defer></script>
+
+</head>
+<body>
+
+    <div class="container">
+
+        <div class="login-card register-card">
+
+            <div class="card-header">
+                <h1>CRIAR CONTA</h1>
+            </div>
+
+            <div class="card-content">
+
+                <!-- Nome -->
+                <div class="input-group">
+
+                    <span class="icon">👤</span>
+
+                    <input
+                        type="text"
+                        id="nome"
+                        name="nome"
+                        placeholder="Nome"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- CPF ou CNPJ -->
+                <div class="input-group">
+
+                    <span class="icon">🪪</span>
+
+                    <input
+                        type="text"
+                        id="cpfCnpj"
+                        name="cpfCnpj"
+                        placeholder="CPF ou CNPJ"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- Telefone -->
+                <div class="input-group">
+
+                    <span class="icon">📞</span>
+
+                    <input
+                        type="tel"
+                        id="telefone"
+                        name="telefone"
+                        placeholder="Telefone"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- Email -->
+                <div class="input-group">
+
+                    <span class="icon">✉</span>
+
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="Email"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- Senha -->
+                <div class="input-group">
+
+                    <span class="icon">🔒</span>
+
+                    <input
+                        type="password"
+                        id="senha"
+                        name="senha"
+                        placeholder="Digite sua senha"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- Termos -->
+                <label class="remember terms">
+
+                    <input
+                        type="checkbox"
+                        id="termos"
+                        name="termos"
+                        required
+                    >
+
+                    <span>
+                        Eu concordo com os termos de uso
+                    </span>
+
+                </label>
+
+
+                <!-- Botão -->
+                <button
+                    type="button"
+                    class="login-button"
+                    id="btnRegistrar"
+                >
+                    Registrar
+                </button>
+
+
+                <!-- Voltar para login -->
+                <p class="register-link">
+
+                    Já tem uma conta?
+
+                    <a href="login.html">
+                        Login
+                    </a>
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>
