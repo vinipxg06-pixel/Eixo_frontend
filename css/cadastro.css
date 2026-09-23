@@ -1,0 +1,823 @@
+/* ==================================================
+   RESET
+================================================== */
+
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+/* ==================================================
+   VARIÁVEIS
+================================================== */
+
+:root {
+    --background: #090909;
+    --background-secondary: #0b0b0b;
+
+    --surface: #161616;
+    --surface-hover: #191919;
+
+    --border: #2b2b2b;
+    --border-hover: #3a3a3a;
+    --border-focus: #606060;
+
+    --text-primary: #f5f5f5;
+    --text-secondary: #929292;
+    --text-muted: #777777;
+
+    --accent: #e00000;
+    --accent-hover: #f00000;
+
+    --grid-color: rgba(255, 255, 255, 0.019);
+}
+
+
+/* ==================================================
+   BASE
+================================================== */
+
+html {
+    width: 100%;
+    min-height: 100%;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    text-rendering: optimizeLegibility;
+}
+
+body {
+    width: 100%;
+    min-height: 100vh;
+
+    font-family: "Rajdhani", sans-serif;
+
+    background-color: var(--background);
+
+    color: #ffffff;
+
+    overflow-x: hidden;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    text-rendering: optimizeLegibility;
+
+    font-synthesis: none;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+button,
+a {
+    -webkit-tap-highlight-color: transparent;
+}
+
+
+/* ==================================================
+   PÁGINA
+================================================== */
+
+.cadastro-page {
+    width: 100%;
+    min-height: 100vh;
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 72fr)
+        minmax(420px, 28fr);
+
+    border-top: 3px solid var(--accent);
+
+    background-color: var(--background);
+}
+
+
+/* ==================================================
+   PAINEL ESQUERDO
+================================================== */
+
+.presentation {
+    min-width: 0;
+
+    min-height: calc(100vh - 3px);
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 55px 70px;
+
+    border-right: 1px solid #1b1b1b;
+
+    background-color: var(--background-secondary);
+
+    background-image:
+        linear-gradient(
+            var(--grid-color) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            var(--grid-color) 1px,
+            transparent 1px
+        );
+
+    background-size: 80px 80px;
+}
+
+
+/* ==================================================
+   CONTEÚDO ESQUERDO
+================================================== */
+
+.presentation-content {
+    width: 100%;
+    max-width: 820px;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+
+    margin: 0 auto;
+
+    text-align: center;
+}
+
+
+/* ==================================================
+   LOGO
+================================================== */
+
+.logo-wrapper {
+    position: relative;
+
+    width: 100%;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    margin-bottom: 32px;
+
+    isolation: isolate;
+}
+
+.logo-wrapper::before {
+    content: "";
+
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+
+    width: min(650px, 92%);
+    height: 190px;
+
+    transform: translate(-50%, -50%);
+
+    background:
+        radial-gradient(
+            ellipse at center,
+            rgba(255, 255, 255, 0.12) 0%,
+            rgba(255, 255, 255, 0.055) 30%,
+            rgba(255, 255, 255, 0.018) 54%,
+            transparent 76%
+        );
+
+    filter: blur(17px);
+
+    pointer-events: none;
+
+    z-index: -1;
+}
+
+.logo {
+    position: relative;
+
+    display: block;
+
+    width: min(500px, 88%);
+    height: auto;
+
+    object-fit: contain;
+
+    filter:
+        drop-shadow(
+            0 8px 10px
+            rgba(0, 0, 0, 0.95)
+        )
+        drop-shadow(
+            0 0 8px
+            rgba(255, 255, 255, 0.16)
+        )
+        drop-shadow(
+            0 0 24px
+            rgba(255, 255, 255, 0.06)
+        );
+
+    user-select: none;
+
+    -webkit-user-drag: none;
+}
+
+
+/* ==================================================
+   TÍTULO
+================================================== */
+
+.presentation h1 {
+    margin-bottom: 20px;
+
+    color: var(--text-primary);
+
+    font-family: "Oswald", sans-serif;
+
+    font-size:
+        clamp(
+            30px,
+            2vw,
+            42px
+        );
+
+    font-weight: 600;
+
+    line-height: 1.15;
+
+    letter-spacing: 7px;
+
+    text-transform: uppercase;
+
+    text-align: center;
+
+    text-rendering: geometricPrecision;
+}
+
+
+/* ==================================================
+   DESCRIÇÃO
+================================================== */
+
+.description {
+    max-width: 580px;
+
+    margin-bottom: 42px;
+
+    color: var(--text-secondary);
+
+    font-size: 17px;
+    font-weight: 600;
+
+    line-height: 1.7;
+
+    text-align: center;
+}
+
+
+/* ==================================================
+   FUNCIONALIDADES
+================================================== */
+
+.features {
+    width: 100%;
+    max-width: 320px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 19px;
+
+    margin: 0 auto;
+
+    list-style: none;
+}
+
+.features li {
+    position: relative;
+
+    padding-left: 22px;
+
+    color: #9a9a9a;
+
+    font-size: 16px;
+    font-weight: 600;
+
+    line-height: 1.5;
+
+    text-align: left;
+}
+
+.features li::before {
+    content: "";
+
+    position: absolute;
+
+    top: 50%;
+    left: 0;
+
+    width: 7px;
+    height: 7px;
+
+    background-color: var(--accent);
+
+    transform: translateY(-50%);
+}
+
+
+/* ==================================================
+   PAINEL CADASTRO
+================================================== */
+
+.cadastro-area {
+    min-height: calc(100vh - 3px);
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 30px 42px;
+
+    background-color: var(--background);
+}
+
+
+/* ==================================================
+   FORMULÁRIO
+================================================== */
+
+.cadastro-form {
+    width: 100%;
+    max-width: 370px;
+}
+
+
+/* ==================================================
+   CABEÇALHO
+================================================== */
+
+.cadastro-header {
+    margin-bottom: 28px;
+}
+
+.cadastro-header h2 {
+    margin-bottom: 10px;
+
+    color: var(--text-primary);
+
+    font-family: "Oswald", sans-serif;
+
+    font-size: 31px;
+    font-weight: 600;
+
+    line-height: 1.15;
+
+    letter-spacing: 3.5px;
+
+    text-transform: uppercase;
+
+    text-rendering: geometricPrecision;
+}
+
+.cadastro-header p {
+    color: #808080;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    line-height: 1.5;
+}
+
+
+/* ==================================================
+   CAMPOS
+================================================== */
+
+.form-group {
+    width: 100%;
+
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: #7a7a7a;
+
+    font-size: 10px;
+    font-weight: 700;
+
+    letter-spacing: 1.2px;
+
+    text-transform: uppercase;
+}
+
+.form-group input {
+    width: 100%;
+    height: 47px;
+
+    padding: 0 15px;
+
+    border: 1px solid var(--border);
+
+    outline: none;
+
+    background-color: var(--surface);
+
+    color: #c5c5c5;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    transition:
+        border-color 160ms ease,
+        background-color 160ms ease,
+        box-shadow 160ms ease;
+}
+
+.form-group input::placeholder {
+    color: #7a7a7a;
+
+    font-weight: 500;
+}
+
+.form-group input:hover {
+    border-color: var(--border-hover);
+}
+
+.form-group input:focus {
+    border-color: var(--border-focus);
+
+    background-color: var(--surface-hover);
+
+    box-shadow:
+        0 0 0 1px
+        rgba(255, 255, 255, 0.025);
+}
+
+button:focus-visible,
+a:focus-visible,
+.form-group input:focus-visible {
+    outline: 2px solid var(--text-primary);
+    outline-offset: 3px;
+}
+
+
+/* ==================================================
+   AJUDA / ERRO
+================================================== */
+
+.field-help,
+.field-error {
+    min-height: 16px;
+
+    margin-top: 6px;
+
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.field-help {
+    color: #5f5f5f;
+}
+
+.field-error {
+    color: #dd4545;
+}
+
+
+/* ==================================================
+   SENHA
+================================================== */
+
+.password-field {
+    position: relative;
+
+    width: 100%;
+}
+
+.password-field input {
+    padding-right: 48px;
+}
+
+.password-toggle {
+    position: absolute;
+
+    top: 50%;
+    right: 10px;
+
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border: 0;
+
+    background: transparent;
+
+    cursor: pointer;
+
+    transform: translateY(-50%);
+}
+
+.password-toggle svg {
+    width: 17px;
+    height: 17px;
+
+    fill: #606060;
+
+    transition: fill 160ms ease;
+}
+
+.password-toggle:hover svg {
+    fill: #999999;
+}
+
+
+/* ==================================================
+   ESTADO INVÁLIDO
+================================================== */
+
+.form-group input[aria-invalid="true"] {
+    border-color: #b83535;
+}
+
+
+/* ==================================================
+   BOTÃO CADASTRO
+================================================== */
+
+.cadastro-button {
+    width: 100%;
+    min-height: 50px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 10px;
+
+    margin-top: 20px;
+
+    padding: 0 20px;
+
+    border: 0;
+
+    background-color: var(--accent);
+
+    color: #ffffff;
+
+    cursor: pointer;
+
+    transition:
+        background-color 160ms ease,
+        transform 100ms ease,
+        box-shadow 160ms ease;
+}
+
+.cadastro-button span {
+    font-family: "Oswald", sans-serif;
+
+    font-size: 12.5px;
+    font-weight: 600;
+
+    letter-spacing: 2.4px;
+
+    text-transform: uppercase;
+}
+
+.cadastro-button svg {
+    width: 16px;
+    height: 16px;
+
+    fill: currentColor;
+}
+
+.cadastro-button:hover:not(:disabled) {
+    background-color: var(--accent-hover);
+
+    box-shadow:
+        0 0 20px
+        rgba(224, 0, 0, 0.20);
+}
+
+.cadastro-button:active:not(:disabled) {
+    transform: scale(0.99);
+}
+
+.cadastro-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+
+/* ==================================================
+   MENSAGEM DO SISTEMA
+================================================== */
+
+.system-message {
+    min-height: 20px;
+
+    margin-top: 16px;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    line-height: 1.5;
+
+    text-align: center;
+}
+
+.system-message.success {
+    color: #7fbb78;
+}
+
+.system-message.error {
+    color: #dd5555;
+}
+
+
+/* ==================================================
+   LINK LOGIN
+================================================== */
+
+.login-link {
+    margin-top: 20px;
+
+    color: #777777;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    text-align: center;
+}
+
+.login-link a {
+    margin-left: 4px;
+
+    color: #b0b0b0;
+
+    font-weight: 700;
+
+    text-decoration: none;
+
+    transition: color 160ms ease;
+}
+
+.login-link a:hover {
+    color: #ffffff;
+}
+
+
+/* ==================================================
+   RODAPÉ
+================================================== */
+
+.copyright {
+    margin-top: 22px;
+
+    color: #555555;
+
+    font-size: 10px;
+    font-weight: 600;
+
+    letter-spacing: 0.7px;
+
+    text-align: center;
+}
+
+
+/* ==================================================
+   AUTOFILL
+================================================== */
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #c5c5c5;
+
+    -webkit-box-shadow:
+        0 0 0 1000px
+        #161616
+        inset;
+
+    caret-color: #c5c5c5;
+}
+
+
+/* ==================================================
+   SELEÇÃO
+================================================== */
+
+::selection {
+    background-color: rgba(224, 0, 0, 0.82);
+
+    color: #ffffff;
+}
+
+
+/* ==================================================
+   RESPONSIVIDADE
+================================================== */
+
+@media (max-width: 1400px) {
+
+    .cadastro-page {
+        grid-template-columns:
+            minmax(0, 67fr)
+            minmax(400px, 33fr);
+    }
+
+    .logo {
+        width: min(430px, 85%);
+    }
+
+}
+
+
+@media (max-width: 1100px) {
+
+    .cadastro-page {
+        grid-template-columns:
+            minmax(0, 58fr)
+            minmax(390px, 42fr);
+    }
+
+    .presentation {
+        padding: 45px 35px;
+    }
+
+    .logo {
+        width: min(350px, 86%);
+    }
+
+    .presentation h1 {
+        font-size: 31px;
+
+        letter-spacing: 6px;
+    }
+
+}
+
+
+@media (max-width: 850px) {
+
+    .cadastro-page {
+        display: block;
+    }
+
+    .presentation {
+        display: none;
+    }
+
+    .cadastro-area {
+        width: 100%;
+
+        min-height: calc(100vh - 3px);
+
+        padding: 40px 24px;
+    }
+
+    .cadastro-form {
+        max-width: 420px;
+    }
+
+}
+
+
+/* ==================================================
+   ACESSIBILIDADE
+================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+
+        animation-duration: 0.01ms !important;
+
+        animation-iteration-count: 1 !important;
+    }
+
+}

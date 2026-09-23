@@ -1,150 +1,339 @@
 <!DOCTYPE html>
-<html lang = "pt-BR"></html>
+<html
+    lang="pt-BR"
+    data-api-base-url=""
+    data-registration-office-id=""
+>
 
 <head>
-
     <meta charset="UTF-8">
-    <meta name = "viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eixo | Sistema de Gerenciamento</title>
-    <link rel = "stylesheet" href="../css/style.css">
-    <script src = "telaDeCadastro.js" defer></script>
 
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="EIXO - Cadastro de usuário"
+    >
+
+    <title>EIXO | Criar conta</title>
+
+    <!-- Fontes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <!-- CSS -->
+    <link
+        rel="stylesheet"
+        href="../css/cadastro.css"
+    >
 </head>
+
 <body>
 
-    <div class="container">
+    <main class="cadastro-page">
 
-        <div class="login-card register-card">
+        <!-- ========================================
+             APRESENTAÇÃO
+        ========================================= -->
 
-            <div class="card-header">
-                <h1>CRIAR CONTA</h1>
+        <section
+            class="presentation"
+            aria-label="Apresentação do sistema EIXO"
+        >
+
+            <div class="presentation-content">
+
+                <div class="logo-wrapper">
+
+                    <img
+                        src="../imagens/eixo_logo.png"
+                        alt="EIXO - Sistema de Gerenciamento de Oficina"
+                        class="logo"
+                    >
+
+                </div>
+
+                <h1>
+                    SISTEMA DE GESTÃO
+                </h1>
+
+                <p class="description">
+                    Gerencie clientes, veículos, ordens de serviço,
+                    <br>
+                    estoque e fluxo de caixa em um só lugar.
+                </p>
+
+                <ul class="features">
+
+                    <li>Clientes &amp; Veículos</li>
+
+                    <li>Ordens de Serviço</li>
+
+                    <li>Estoque</li>
+
+                    <li>Fluxo de Caixa</li>
+
+                </ul>
+
             </div>
 
-            <div class="card-content">
+        </section>
 
-                <!-- Nome -->
-                <div class="input-group">
 
-                    <span class="icon">👤</span>
+        <!-- ========================================
+             CADASTRO
+        ========================================= -->
+
+        <section
+            class="cadastro-area"
+            aria-labelledby="cadastro-title"
+        >
+
+            <form
+                class="cadastro-form"
+                id="cadastro-form"
+                novalidate
+            >
+
+                <header class="cadastro-header">
+
+                    <h2 id="cadastro-title">
+                        CRIAR CONTA
+                    </h2>
+
+                    <p>
+                        Cadastre seus dados para acessar o sistema
+                    </p>
+
+                </header>
+
+
+                <!--
+                    Banco:
+                    usuarios.nome_usuario
+                -->
+
+                <div class="form-group">
+
+                    <label for="nome-usuario">
+                        NOME DE USUÁRIO
+                    </label>
 
                     <input
                         type="text"
-                        id="nome"
-                        name="nome"
-                        placeholder="Nome"
+                        id="nome-usuario"
+                        name="nomeUsuario"
+                        placeholder="seu.usuario"
+                        autocomplete="username"
+                        minlength="3"
                         required
                     >
 
                 </div>
 
 
-                <!-- CPF ou CNPJ -->
-                <div class="input-group">
+                <!--
+                    Banco:
+                    usuarios.email
+                -->
 
-                    <span class="icon">🪪</span>
+                <div class="form-group">
 
-                    <input
-                        type="text"
-                        id="cpfCnpj"
-                        name="cpfCnpj"
-                        placeholder="CPF ou CNPJ"
-                        required
-                    >
-
-                </div>
-
-
-                <!-- Telefone -->
-                <div class="input-group">
-
-                    <span class="icon">📞</span>
-
-                    <input
-                        type="tel"
-                        id="telefone"
-                        name="telefone"
-                        placeholder="Telefone"
-                        required
-                    >
-
-                </div>
-
-
-                <!-- Email -->
-                <div class="input-group">
-
-                    <span class="icon">✉</span>
+                    <label for="email">
+                        E-MAIL
+                    </label>
 
                     <input
                         type="email"
                         id="email"
                         name="email"
-                        placeholder="Email"
+                        placeholder="seuemail@exemplo.com"
+                        autocomplete="email"
+                        inputmode="email"
                         required
                     >
 
                 </div>
 
 
-                <!-- Senha -->
-                <div class="input-group">
+                <!--
+                    Banco:
+                    usuarios.senha
+                -->
 
-                    <span class="icon">🔒</span>
+                <div class="form-group">
 
-                    <input
-                        type="password"
-                        id="senha"
-                        name="senha"
-                        placeholder="Digite sua senha"
-                        required
-                    >
+                    <label for="senha">
+                        SENHA
+                    </label>
+
+                    <div class="password-field">
+
+                        <input
+                            type="password"
+                            id="senha"
+                            name="senha"
+                            placeholder="••••••••"
+                            autocomplete="new-password"
+                            minlength="8"
+                            required
+                        >
+
+                        <button
+                            type="button"
+                            class="password-toggle"
+                            data-password-target="senha"
+                            aria-label="Mostrar senha"
+                            aria-pressed="false"
+                        >
+
+                            <svg
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    d="M12 5C6.5 5 2.3 9.2 1 12c1.3 2.8 5.5 7 11 7s9.7-4.2 11-7C21.7 9.2 17.5 5 12 5Zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-6a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"
+                                />
+                            </svg>
+
+                        </button>
+
+                    </div>
+
+                    <p class="field-help">
+                        Utilize no mínimo 8 caracteres
+                    </p>
 
                 </div>
 
 
-                <!-- Termos -->
-                <label class="remember terms">
+                <!--
+                    Somente validação do frontend.
+                    Não é coluna do banco.
+                -->
 
-                    <input
-                        type="checkbox"
-                        id="termos"
-                        name="termos"
-                        required
+                <div class="form-group">
+
+                    <label for="confirmar-senha">
+                        CONFIRMAR SENHA
+                    </label>
+
+                    <div class="password-field">
+
+                        <input
+                            type="password"
+                            id="confirmar-senha"
+                            placeholder="••••••••"
+                            autocomplete="new-password"
+                            minlength="8"
+                            aria-describedby="confirmar-senha-error"
+                            required
+                        >
+
+                        <button
+                            type="button"
+                            class="password-toggle"
+                            data-password-target="confirmar-senha"
+                            aria-label="Mostrar confirmação da senha"
+                            aria-pressed="false"
+                        >
+
+                            <svg
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    d="M12 5C6.5 5 2.3 9.2 1 12c1.3 2.8 5.5 7 11 7s9.7-4.2 11-7C21.7 9.2 17.5 5 12 5Zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-6a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"
+                                />
+                            </svg>
+
+                        </button>
+
+                    </div>
+
+                    <p
+                        class="field-error"
+                        id="confirmar-senha-error"
+                        aria-live="polite"
+                    ></p>
+
+                </div>
+
+
+                <!-- CADASTRAR -->
+
+                <button
+                    type="submit"
+                    class="cadastro-button"
+                    id="cadastro-button"
+                >
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
                     >
+                        <path
+                            d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4ZM6 10V7H4v3H1v2h3v3h2v-3h3v-2H6Zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4Z"
+                        />
+                    </svg>
 
                     <span>
-                        Eu concordo com os termos de uso
+                        CRIAR CONTA
                     </span>
 
-                </label>
-
-
-                <!-- Botão -->
-                <button
-                    type="button"
-                    class="login-button"
-                    id="btnRegistrar"
-                >
-                    Registrar
                 </button>
 
 
-                <!-- Voltar para login -->
-                <p class="register-link">
+                <!-- RESPOSTA DA API -->
 
-                    Já tem uma conta?
+                <div
+                    class="system-message"
+                    id="system-message"
+                    role="status"
+                    aria-live="polite"
+                ></div>
+
+
+                <!-- LOGIN -->
+
+                <p class="login-link">
+
+                    Já possui uma conta?
 
                     <a href="login.html">
-                        Login
+                        Entrar no sistema
                     </a>
 
                 </p>
 
-            </div>
 
-        </div>
+                <!-- RODAPÉ -->
 
-    </div>
+                <p class="copyright">
+                    EIXO © 2026 — Sistema de Gestão de Oficinas
+                </p>
+
+            </form>
+
+        </section>
+
+    </main>
+
+    <script src="../javaScript/api-config.js"></script>
+    <script src="../javaScript/cadastro.js"></script>
 
 </body>
 
