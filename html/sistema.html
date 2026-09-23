@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="EIXO - gestão da oficina">
+    <title>EIXO | Gestão da oficina</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/sistema.css">
+    <style>
+        .brand { position: relative; overflow: hidden; }
+        .brand::before { content: ""; position: absolute; width: 150px; height: 60px; background: radial-gradient(ellipse, rgba(255,255,255,.18), rgba(224,0,0,.07) 42%, transparent 72%); filter: blur(12px); }
+        .brand img { position: relative; z-index: 1; width: 88px; filter: drop-shadow(0 5px 7px rgba(0,0,0,.95)) drop-shadow(0 0 7px rgba(255,255,255,.22)); }
+        .nav-icon { width: 16px; height: 16px; flex: 0 0 16px; fill: none; stroke: currentColor; stroke-width: 1.55; stroke-linecap: round; stroke-linejoin: round; }
+        .side-nav a span { display: none; }
+        .icon-button svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+        .alerts p { display: flex; align-items: center; }
+        .alerts p svg { width: 14px; height: 14px; flex: 0 0 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+        .chart-area { cursor: crosshair; }
+        .chart-guide { stroke: #bdbdbd; stroke-width: 1; opacity: .82; }
+        .chart-dot { fill: #171717; stroke: #f3f3f3; stroke-width: 2; }
+        .chart-tooltip { position: absolute; z-index: 2; min-width: 94px; padding: 10px 12px; background: #151515; border: 1px solid #363636; color: #a8a8a8; font-size: 11px; pointer-events: none; transform: translate(10px, -106%); box-shadow: 0 7px 20px rgba(0,0,0,.35); }
+        .chart-tooltip b, .chart-tooltip strong { display: block; font-size: 12px; }
+        .chart-tooltip .meta { display: block; margin-top: 6px; color: #777; }
+        .chart-tooltip strong { margin-top: 5px; color: #f01111; }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" aria-label="Navegação principal">
+            <a class="brand" href="#dashboard" aria-label="Ir para o dashboard">
+                <img src="../imagens/eixo_logo.png" alt="EIXO">
+            </a>
+            <nav class="side-nav">
+                <a href="#dashboard" data-view="dashboard"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><rect x="14" y="14" width="6" height="6"/></svg>Dashboard</a>
+                <a href="#clientes" data-view="clientes"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.2 2.7-5.5 6-5.5s6 2.3 6 5.5M17 9c2 0 3.5 1.5 3.5 3.5M17 15c2.2.3 3.8 1.8 4 4"/></svg>Clientes</a>
+                <a href="#veiculos" data-view="veiculos"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15l1.7-5h12.6l1.7 5v4H4zM7 10l1-3h8l1 3M7 17h.01M17 17h.01"/></svg>Veículos</a>
+                <a href="#orcamentos" data-view="orcamentos"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM15 3v5h4M9 13h6M9 17h6"/></svg>Orçamentos</a>
+                <a href="#ordens" data-view="ordens"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="1"/><path d="M9 4V2M15 4V2M8 10h8M8 14h8M8 18h5"/></svg>Ordens de Serviço</a>
+                <a href="#estoque" data-view="estoque"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7l8-4 8 4-8 4zM4 7v10l8 4 8-4V7M12 11v10"/></svg>Estoque</a>
+                <a href="#caixa" data-view="caixa"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17l5-5 3 3 7-8M15 7h4v4"/></svg>Fluxo de Caixa</a>
+            </nav>
+        </aside>
+
+        <main class="workspace">
+            <header class="topbar">
+                <p class="breadcrumb">EIXO <b>›</b> <strong data-breadcrumb>DASHBOARD</strong></p>
+                <div class="topbar-actions"><button class="icon-button" aria-label="Notificações"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 10a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 22h4"/></svg><i></i></button><time data-date></time></div>
+            </header>
+
+            <section class="view" data-view-panel="dashboard">
+                <div class="page-heading"><div><h1>Dashboard</h1><p>Visão geral — 13 de julho de 2026</p></div></div>
+                <div class="alerts"><p class="warning"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l9 16H3zM12 9v4M12 17h.01"/></svg><span>3 item(s) com estoque abaixo do mínimo — verifique o estoque.</span></p><p class="info"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 10a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 22h4"/></svg><span>OS-2847 em andamento — Carlos Mendes · Honda Civic.</span></p><p class="success"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M8.5 12l2.3 2.3 4.8-5"/></svg><span>Meta semanal: 72 ordens concluídas esta semana.</span></p></div>
+                <div class="summary-grid">
+                    <article class="metric positive"><small>Receita do mês</small><b>R$ 1.126,00</b><p>↗ +8,5% <span>vs mês anterior</span></p></article>
+                    <article class="metric negative"><small>Ordens em aberto</small><b>2</b><p>↘ +2 <span>abertas+andamento</span></p></article>
+                    <article class="metric positive"><small>Clientes ativos</small><b>4</b><p>↗ +1 <span>este mês</span></p></article>
+                    <article class="metric negative"><small>Itens com estoque baixo</small><b>3</b><p>↘ 3 alertas <span>abaixo do mínimo</span></p></article>
+                </div>
+                <div class="dashboard-grid">
+                    <article class="panel revenue-chart"><header><div><h2>Receita mensal</h2><p>Realizado vs meta — 2026</p></div><em>-8,5% YTD</em></header><div class="chart-area" data-revenue-chart><span class="axis a1">80K</span><span class="axis a2">60K</span><span class="axis a3">40K</span><span class="axis a4">20K</span><svg viewBox="0 0 820 190" role="img" aria-label="Evolução da receita mensal. Passe o mouse para ver o valor de cada mês."><defs><linearGradient id="revenueFill" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#e00000" stop-opacity=".25"/><stop offset="1" stop-color="#e00000" stop-opacity="0"/></linearGradient></defs><path class="grid-lines" d="M0 25H820M0 70H820M0 115H820M0 160H820M130 0V175M260 0V175M390 0V175M520 0V175M650 0V175"/><path fill="url(#revenueFill)" d="M0 100 L130 100 L260 91 L390 91 L520 82 L650 82 L735 78 L820 70 V175 H0Z"/><path class="line" d="M0 100 L130 100 L260 91 L390 91 L520 82 L650 82 L735 78 L820 70"/><line class="chart-guide" data-chart-guide x1="0" x2="0" y1="0" y2="175" hidden/><circle class="chart-dot" data-chart-dot cx="0" cy="0" r="4" hidden/></svg><div class="chart-tooltip" data-chart-tooltip hidden><b></b><span class="meta"></span><strong></strong></div><div class="months"><span>Jan</span><span>Fev</span><span>Mar</span><span>Abr</span><span>Mai</span><span>Jun</span><span>Jul</span></div></div></article>
+                    <article class="panel service-chart"><header><div><h2>Tipos de serviço</h2><p>Distribuição — mês atual</p></div></header><div class="donut" aria-label="Mecânica 38%, Funilaria 24%, Elétrica 18%, Revisão 14%, Outros 6%"></div><ul class="legend"><li><i class="red"></i>Mecânica <b>38%</b></li><li><i class="salmon"></i>Funilaria <b>24%</b></li><li><i class="orange"></i>Elétrica <b>18%</b></li><li><i class="gray"></i>Revisão <b>14%</b></li><li><i class="blue"></i>Outros <b>6%</b></li></ul></article>
+                    <article class="panel production"><header><div><h2>Produção semanal</h2><p>Abertas vs concluídas</p></div></header><div class="bars"><i style="--h:48%"></i><i style="--h:62%"></i><i style="--h:77%"></i><i style="--h:55%"></i><i style="--h:88%"></i><i style="--h:40%"></i></div><div class="bar-labels"><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span></div></article>
+                    <article class="panel recent-orders"><header><div><h2>Ordens recentes</h2><p>Últimas movimentações</p></div></header><div class="mini-table"><div class="mini-head"><span>OS</span><span>Cliente</span><span>Serviço</span><span>Total</span><span>Status</span></div><div><b>OS-2847</b><span>Carlos</span><span>Revisão 40K</span><strong>R$ 350,10</strong><em class="badge progress">Em andamento</em></div><div><b>OS-2846</b><span>Mariana</span><span>Freios dianteiros</span><strong>R$ 189,00</strong><em class="badge open">Aberta</em></div><div><b>OS-2845</b><span>Roberto</span><span>Velas de ignição</span><strong>R$ 192,00</strong><em class="badge done">Concluída</em></div></div></article>
+                </div>
+            </section>
+
+            <section class="view" data-view-panel="clientes" hidden>
+                <div class="page-heading"><div><h1>Clientes</h1><p><span data-count="clientes">5</span> cadastrados</p></div><div class="toolbar"><label class="search"><span>⌕</span><input type="search" placeholder="Buscar..." data-search="clientes"></label><button class="primary" data-new="cliente">＋ Novo</button></div></div>
+                <div class="client-list" data-list="clientes"></div>
+            </section>
+
+            <section class="view" data-view-panel="veiculos" hidden>
+                <div class="page-heading"><div><h1>Veículos</h1><p><span data-count="veiculos">5</span> cadastrados</p></div><div class="toolbar"><label class="search"><span>⌕</span><input type="search" placeholder="Buscar..." data-search="veiculos"></label><button class="primary" data-new="veículo">＋ Novo</button></div></div>
+                <div class="data-table-wrap"><table><thead><tr><th>Placa</th><th>Marca</th><th>Modelo</th><th>Ano</th><th>Cor</th><th>Combustível</th><th>Km</th><th>Proprietário</th><th>OS</th><th aria-label="Ações"></th></tr></thead><tbody data-list="veiculos"></tbody></table></div>
+            </section>
+
+            <section class="view" data-view-panel="orcamentos" hidden>
+                <div class="page-heading"><div><h1>Orçamentos</h1><p><span data-count="orcamentos">2</span> cadastrados</p></div><button class="primary" data-new="orçamento">＋ Novo</button></div>
+                <div class="data-table-wrap"><table><thead><tr><th>Nº</th><th>Cliente</th><th>Veículo</th><th>Data</th><th>Total</th><th>Status</th><th aria-label="Ações"></th></tr></thead><tbody data-list="orcamentos"></tbody></table></div>
+            </section>
+
+            <section class="view" data-view-panel="ordens" hidden>
+                <div class="page-heading"><div><h1>Ordens de serviço</h1><p><span data-count="ordens">4</span> registros</p></div><button class="primary" data-new="ordem de serviço">＋ Nova OS</button></div>
+                <div class="filters" data-filter-group="ordens"><button class="active" data-filter="todos">Todos</button><button data-filter="aberta">Aberta</button><button data-filter="em andamento">Em andamento</button><button data-filter="concluída">Concluída</button><button data-filter="cancelada">Cancelada</button></div>
+                <div class="data-table-wrap"><table><thead><tr><th>OS</th><th>Cliente</th><th>Veículo</th><th>Técnico</th><th>Data</th><th>Total</th><th>Status</th><th aria-label="Ações"></th></tr></thead><tbody data-list="ordens"></tbody></table></div>
+            </section>
+
+            <section class="view" data-view-panel="estoque" hidden>
+                <div class="page-heading"><div><h1>Estoque</h1><p><span data-count="estoque">5</span> itens</p></div><div class="toolbar"><label class="search"><span>⌕</span><input type="search" placeholder="Buscar..." data-search="estoque"></label><button class="primary" data-new="item">＋ Novo</button></div></div>
+                <div class="data-table-wrap"><table><thead><tr><th>Código</th><th>Item</th><th>Categoria</th><th>Unidade</th><th>Qtd.</th><th>Mínimo</th><th>Preço unit.</th><th>Valor total</th><th>Status</th><th aria-label="Ações"></th></tr></thead><tbody data-list="estoque"></tbody></table></div>
+            </section>
+
+            <section class="view" data-view-panel="caixa" hidden>
+                <div class="page-heading"><div><h1>Fluxo de caixa</h1><p>Lançamentos do período</p></div><button class="primary" data-new="lançamento">＋ Lançamento</button></div>
+                <div class="cash-summary"><article class="metric positive"><small>Total de entradas</small><b>R$ 1.126,00</b></article><article class="metric negative"><small>Total de saídas</small><b>R$ 4.258,00</b></article><article class="metric negative"><small>Saldo do período</small><b>-R$ 3.132,00</b></article></div>
+                <div class="filters" data-filter-group="caixa"><button class="active" data-filter="todos">Todos</button><button data-filter="entrada">Entradas</button><button data-filter="saída">Saídas</button></div>
+                <div class="data-table-wrap"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>OS</th><th>Tipo</th><th>Valor</th><th aria-label="Ações"></th></tr></thead><tbody data-list="caixa"></tbody></table></div>
+            </section>
+        </main>
+    </div>
+    <dialog class="modal" data-modal><form method="dialog"><button class="modal-close" value="cancel" aria-label="Fechar">×</button><h2 data-modal-title>Novo registro</h2><p>Esta é uma interação demonstrativa. A integração de gravação será conectada ao backend quando os endpoints forem definidos.</p><label>Descrição<input required name="descricao" placeholder="Informe a descrição"></label><menu><button value="cancel">Cancelar</button><button class="primary" value="default">Salvar rascunho</button></menu></form></dialog>
+    <div class="toast" role="status" aria-live="polite" data-toast></div>
+    <script src="../javaScript/api-config.js"></script>
+    <script src="../javaScript/sistema.js"></script>
+    <script src="../javaScript/sistema-api.js"></script>
+</body>
+</html>

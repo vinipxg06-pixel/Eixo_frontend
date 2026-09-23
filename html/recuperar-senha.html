@@ -2,6 +2,7 @@
 <html
     lang="pt-BR"
     data-api-base-url=""
+    data-password-recovery-path=""
 >
 
 <head>
@@ -14,10 +15,10 @@
 
     <meta
         name="description"
-        content="EIXO - Sistema de Gestão de Oficinas"
+        content="EIXO - Recuperação de acesso"
     >
 
-    <title>EIXO | Login</title>
+    <title>EIXO | Recuperar senha</title>
 
     <!-- Fontes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,13 +37,13 @@
     <!-- CSS -->
     <link
         rel="stylesheet"
-        href="../css/login.css"
+        href="../css/recuperar-senha.css"
     >
 </head>
 
 <body>
 
-    <main class="login-page">
+    <main class="recovery-page">
 
         <!-- ========================================
              APRESENTAÇÃO
@@ -77,13 +78,21 @@
 
                 <ul class="features">
 
-                    <li>Clientes &amp; Veículos</li>
+                    <li>
+                        Clientes &amp; Veículos
+                    </li>
 
-                    <li>Ordens de Serviço</li>
+                    <li>
+                        Ordens de Serviço
+                    </li>
 
-                    <li>Estoque</li>
+                    <li>
+                        Estoque
+                    </li>
 
-                    <li>Fluxo de Caixa</li>
+                    <li>
+                        Fluxo de Caixa
+                    </li>
 
                 </ul>
 
@@ -93,28 +102,29 @@
 
 
         <!-- ========================================
-             LOGIN
+             RECUPERAÇÃO DE SENHA
         ========================================= -->
 
         <section
-            class="login-area"
-            aria-labelledby="login-title"
+            class="recovery-area"
+            aria-labelledby="recovery-title"
         >
 
             <form
-                class="login-form"
-                id="login-form"
+                class="recovery-form"
+                id="recovery-form"
                 novalidate
             >
 
-                <header class="login-header">
+                <header class="recovery-header">
 
-                    <h2 id="login-title">
-                        BEM-VINDO
+                    <h2 id="recovery-title">
+                        RECUPERAR ACESSO
                     </h2>
 
                     <p>
-                        Faça login para continuar
+                        Informe o e-mail cadastrado para receber
+                        as instruções de redefinição de senha.
                     </p>
 
                 </header>
@@ -135,75 +145,26 @@
                         placeholder="seuemail@exemplo.com"
                         autocomplete="email"
                         inputmode="email"
+                        maxlength="150"
+                        aria-describedby="email-error"
                         required
                     >
 
-                </div>
-
-
-                <!-- SENHA -->
-
-                <div class="form-group">
-
-                    <label for="senha">
-                        SENHA
-                    </label>
-
-                    <div class="password-field">
-
-                        <input
-                            type="password"
-                            id="senha"
-                            name="senha"
-                            placeholder="••••••••"
-                            autocomplete="current-password"
-                            required
-                        >
-
-                        <button
-                            type="button"
-                            class="password-toggle"
-                            id="password-toggle"
-                            aria-label="Mostrar senha"
-                            aria-pressed="false"
-                        >
-
-                            <svg
-                                viewBox="0 0 24 24"
-                                aria-hidden="true"
-                            >
-                                <path
-                                    d="M12 5C6.5 5 2.3 9.2 1 12c1.3 2.8 5.5 7 11 7s9.7-4.2 11-7C21.7 9.2 17.5 5 12 5Zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-6a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"
-                                />
-                            </svg>
-
-                        </button>
-
-                    </div>
+                    <p
+                        class="field-error"
+                        id="email-error"
+                        aria-live="polite"
+                    ></p>
 
                 </div>
 
 
-                <!-- RECUPERAÇÃO DE SENHA -->
-
-                <div class="login-options">
-
-                    <a
-                        href="recuperar-senha.html"
-                        class="forgot-password"
-                    >
-                        Esqueci minha senha
-                    </a>
-
-                </div>
-
-
-                <!-- BOTÃO LOGIN -->
+                <!-- BOTÃO -->
 
                 <button
                     type="submit"
-                    class="login-button"
-                    id="login-button"
+                    class="recovery-button"
+                    id="recovery-button"
                 >
 
                     <svg
@@ -211,18 +172,18 @@
                         aria-hidden="true"
                     >
                         <path
-                            d="M17 8h-1V6a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2Zm-7-2a2 2 0 0 1 4 0v2h-4V6Zm7 13H7v-9h10v9Z"
+                            d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 4-8 5-8-5V6l8 5 8-5v2Z"
                         />
                     </svg>
 
                     <span>
-                        ENTRAR NO SISTEMA
+                        ENVIAR INSTRUÇÕES
                     </span>
 
                 </button>
 
 
-                <!-- RESPOSTA DA API -->
+                <!-- MENSAGEM DO SISTEMA -->
 
                 <div
                     class="system-message"
@@ -232,14 +193,14 @@
                 ></div>
 
 
-                <!-- CADASTRO -->
+                <!-- VOLTAR -->
 
-                <p class="register-link">
+                <p class="login-link">
 
-                    Ainda não possui uma conta?
+                    Lembrou sua senha?
 
-                    <a href="cadastro.html">
-                        Criar conta
+                    <a href="login.html">
+                        Entrar no sistema
                     </a>
 
                 </p>
@@ -258,7 +219,7 @@
     </main>
 
     <script src="../javaScript/api-config.js"></script>
-    <script src="../javaScript/login.js"></script>
+    <script src="../javaScript/recuperar-senha.js"></script>
 
 </body>
 
