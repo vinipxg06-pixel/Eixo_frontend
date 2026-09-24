@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EIXO — Clientes</title>
+  <link rel="stylesheet" href="../global/css/global.css">
+  <link rel="stylesheet" href="../global/css/menu.css">
+  <link rel="stylesheet" href="../global/css/toast.css">
+  <link rel="stylesheet" href="./clientes.css">
+</head>
+<body>
+  <div class="app-layout">
+    <div data-menu></div>
+
+    <div class="app-content">
+      <header data-header></header>
+
+      <main class="app-main clientes-page">
+        <div class="clientes-topbar">
+          <div class="clientes-title-block">
+            <h1 class="page-title">Clientes</h1>
+            <p class="clientes-subtitle" id="clientesCount">Carregando...</p>
+          </div>
+
+          <div class="clientes-actions">
+            <div class="clientes-search-wrap">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="11" cy="11" r="7"></circle>
+                <path d="m20 20-3.8-3.8"></path>
+              </svg>
+              <input id="buscaCliente" type="search" placeholder="Buscar..." autocomplete="off" aria-label="Buscar cliente">
+            </div>
+
+            <button class="btn btn-primary btn-novo-cliente" type="button" id="btnNovoCliente">+ Novo</button>
+          </div>
+        </div>
+
+        <section class="clientes-list-shell">
+          <div class="clientes-loading" id="clientesLoading">
+            <span class="loading-spinner"></span>
+            <span>Carregando clientes...</span>
+          </div>
+
+          <div class="clientes-list hidden" id="clientesList" aria-live="polite"></div>
+
+          <div class="clientes-empty hidden" id="clientesEmpty">
+            <strong>Nenhum cliente encontrado</strong>
+            <span id="clientesEmptyText">Cadastre o primeiro cliente da oficina.</span>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="clienteModal" aria-hidden="true">
+    <section class="cliente-modal" role="dialog" aria-modal="true" aria-labelledby="clienteModalTitle">
+      <div class="cliente-modal-header">
+        <div>
+          <span class="cliente-modal-eyebrow" id="clienteModalEyebrow">Cadastro</span>
+          <h2 id="clienteModalTitle">Novo cliente</h2>
+        </div>
+        <button class="cliente-modal-close" type="button" id="btnFecharModal" aria-label="Fechar">×</button>
+      </div>
+
+      <form id="clienteForm" novalidate>
+        <div class="cliente-form-grid">
+          <div class="form-field form-field-full">
+            <label for="nomeCliente">Nome *</label>
+            <input id="nomeCliente" name="nomeCliente" type="text" maxlength="150" autocomplete="name" required>
+            <small class="field-error" data-error-for="nomeCliente"></small>
+          </div>
+
+          <div class="form-field">
+            <label for="cpfCnpj">CPF/CNPJ</label>
+            <input id="cpfCnpj" name="cpfCnpj" type="text" maxlength="18" inputmode="numeric" autocomplete="off">
+            <small class="field-error" data-error-for="cpfCnpj"></small>
+          </div>
+
+          <div class="form-field">
+            <label for="telefone">Telefone *</label>
+            <input id="telefone" name="telefone" type="tel" maxlength="15" inputmode="numeric" autocomplete="tel" required>
+            <small class="field-error" data-error-for="telefone"></small>
+          </div>
+
+          <div class="form-field form-field-full">
+            <label for="email">E-mail *</label>
+            <input id="email" name="email" type="email" maxlength="150" autocomplete="email" required>
+            <small class="field-error" data-error-for="email"></small>
+          </div>
+
+          <div class="form-field form-field-full hidden" id="statusField">
+            <label for="statusCliente">Status *</label>
+            <select id="statusCliente" name="status">
+              <option value="Ativo">Ativo</option>
+              <option value="Inativo">Inativo</option>
+            </select>
+            <small class="field-error" data-error-for="status"></small>
+          </div>
+        </div>
+
+        <div class="cliente-modal-actions">
+          <button class="btn btn-secondary" type="button" id="btnCancelarCliente">Cancelar</button>
+          <button class="btn btn-primary" type="submit" id="btnSalvarCliente">Salvar cliente</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <script src="../global/js/config.js"></script>
+  <script src="../global/js/api.js"></script>
+  <script src="../global/js/session.js"></script>
+  <script src="../global/js/menu.js"></script>
+  <script src="../global/js/layout.js"></script>
+  <script src="../global/js/toast.js"></script>
+  <script src="../global/js/formatters.js"></script>
+  <script src="./clientes.js"></script>
+</body>
+</html>

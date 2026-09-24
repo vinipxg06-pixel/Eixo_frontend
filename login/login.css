@@ -1,0 +1,245 @@
+.login-page {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  background: var(--color-bg);
+}
+
+/* ============ PAINEL ESQUERDO ============ */
+.side-left {
+  flex: 1;
+  background: var(--color-bg-secondary);
+  border-right: 1px solid var(--color-border-soft);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  position: relative;
+  overflow: hidden;
+}
+
+.grid-overlay {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+.top-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary) 0%, transparent 60%);
+}
+
+.left-content {
+  text-align: left;
+  position: relative;
+  z-index: 1;
+  max-width: 380px;
+}
+
+.logo-img {
+  width: 400px;
+  height: 200px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.left-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 30px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text);
+  margin-bottom: 16px;
+}
+
+.left-desc {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  line-height: 1.7;
+  max-width: 340px;
+}
+
+.feature-list {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.feature-item span:last-child {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.feature-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--color-primary);
+  flex-shrink: 0;
+}
+
+/* ============ PAINEL DIREITO ============ */
+.side-right {
+  width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+}
+
+.form-wrap {
+  width: 100%;
+  max-width: 340px;
+}
+
+.form-header {
+  margin-bottom: 32px;
+}
+
+.welcome-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 30px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-text);
+  margin-bottom: 6px;
+}
+
+.welcome-sub {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.field-group {
+  margin-bottom: 14px;
+}
+
+.senha-group {
+  margin-bottom: 8px;
+}
+
+.senha-wrap {
+  position: relative;
+}
+
+.senha-field {
+  padding-right: 42px;
+}
+
+.toggle-senha {
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  bottom: 1px;
+  width: 40px;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.toggle-senha:hover {
+  color: var(--color-text-secondary);
+}
+
+.forgot-wrap {
+  margin-top: 4px;
+  margin-bottom: 24px;
+  text-align: right;
+}
+
+.forgot-link {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.forgot-link:hover {
+  color: var(--color-text-secondary);
+}
+
+.btn-entrar {
+  width: 100%;
+  padding: 13px;
+  background: var(--color-primary);
+  border: none;
+  color: #fff;
+  font-size: 13px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: filter 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-entrar:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+.btn-entrar:active:not(:disabled) {
+  filter: brightness(0.95);
+}
+
+.btn-entrar:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.footer-note {
+  margin-top: 24px;
+  font-size: 10px;
+  color: var(--color-text-disabled);
+  text-align: center;
+  font-family: var(--font-mono);
+}
+
+@media (max-width: 860px) {
+  .login-page {
+    flex-direction: column;
+  }
+
+  .side-left {
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-soft);
+    padding: 40px 24px;
+  }
+
+  .logo-img {
+    width: min(100%, 320px);
+    height: auto;
+    margin-bottom: 24px;
+  }
+
+  .side-right {
+    width: 100%;
+    padding: 40px 24px;
+  }
+}

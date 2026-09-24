@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EIXO — Estoque</title>
+  <link rel="stylesheet" href="../global/css/global.css">
+  <link rel="stylesheet" href="../global/css/menu.css">
+  <link rel="stylesheet" href="../global/css/toast.css">
+  <link rel="stylesheet" href="./estoque.css">
+</head>
+<body>
+  <div class="app-layout">
+    <div data-menu></div>
+    <div class="app-content">
+      <header data-header></header>
+
+      <main class="app-main estoque-page">
+        <div class="estoque-topbar">
+          <div>
+            <h1 class="page-title">Estoque</h1>
+            <p class="estoque-subtitle" id="estoqueCount">Carregando...</p>
+          </div>
+
+          <div class="estoque-actions">
+            <div class="estoque-search-wrap">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="11" cy="11" r="7"></circle>
+                <path d="m20 20-3.8-3.8"></path>
+              </svg>
+              <input id="buscaEstoque" type="search" placeholder="Buscar..." autocomplete="off" aria-label="Buscar item no estoque">
+            </div>
+            <button class="btn btn-primary btn-novo-estoque" type="button" id="btnNovaPeca">+ Novo</button>
+          </div>
+        </div>
+
+        <section class="estoque-table-shell">
+          <div class="estoque-loading" id="estoqueLoading">
+            <span class="loading-spinner"></span>
+            <span>Carregando estoque...</span>
+          </div>
+
+          <div class="estoque-table-wrap hidden" id="estoqueTableWrap">
+            <table class="estoque-table">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Item</th>
+                  <th>Categoria</th>
+                  <th>Unidade</th>
+                  <th>Qtd.</th>
+                  <th>Mínimo</th>
+                  <th>Preço Unit.</th>
+                  <th>Valor Total</th>
+                  <th>Status</th>
+                  <th class="estoque-actions-col" aria-label="Ações"></th>
+                </tr>
+              </thead>
+              <tbody id="estoqueTableBody"></tbody>
+            </table>
+          </div>
+
+          <div class="estoque-empty hidden" id="estoqueEmpty">
+            <strong>Nenhum item encontrado</strong>
+            <span id="estoqueEmptyText">Cadastre o primeiro item do estoque.</span>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="estoque-action-menu hidden" id="estoqueActionMenu" role="menu" aria-hidden="true">
+    <button type="button" data-stock-action="entrada" role="menuitem">
+      <span class="action-menu-icon">+</span>
+      <span><strong>Entrada</strong><small>Adicionar ao estoque</small></span>
+    </button>
+    <button type="button" data-stock-action="saida" role="menuitem">
+      <span class="action-menu-icon">−</span>
+      <span><strong>Saída</strong><small>Remover do estoque</small></span>
+    </button>
+    <button type="button" data-stock-action="editar" role="menuitem">
+      <span class="action-menu-icon">✎</span>
+      <span><strong>Editar</strong><small>Alterar dados da peça</small></span>
+    </button>
+  </div>
+
+  <!-- Cadastro / edição -->
+  <div class="modal-backdrop hidden" id="pecaModal" aria-hidden="true">
+    <section class="estoque-modal" role="dialog" aria-modal="true" aria-labelledby="pecaModalTitle">
+      <div class="estoque-modal-header">
+        <div>
+          <h2 id="pecaModalTitle">Novo item</h2>
+          <p id="pecaModalSubtitle">Cadastre uma nova peça no estoque.</p>
+        </div>
+        <button class="estoque-modal-close" type="button" id="btnFecharPecaModal" aria-label="Fechar">×</button>
+      </div>
+
+      <form id="pecaForm" novalidate>
+        <div class="estoque-form-grid">
+          <div class="form-field form-field-wide">
+            <label for="nomePeca">Nome da peça *</label>
+            <input id="nomePeca" name="nomePeca" type="text" maxlength="100" autocomplete="off" placeholder="Ex.: Filtro de óleo" required>
+            <small class="field-error" data-error-for="nomePeca"></small>
+          </div>
+
+          <div class="form-field">
+            <label for="categoria">Categoria *</label>
+            <select id="categoria" name="categoria" required>
+              <option value="">Selecione</option>
+              <option value="Motor">Motor</option>
+              <option value="Freios">Freios</option>
+              <option value="Suspensao">Suspensão</option>
+              <option value="Transmissao">Transmissão</option>
+              <option value="Embreagem">Embreagem</option>
+              <option value="Eletrica">Elétrica</option>
+              <option value="Arrefecimento">Arrefecimento</option>
+              <option value="Filtros">Filtros</option>
+              <option value="Lubrificante">Lubrificante</option>
+              <option value="Pneu">Pneu</option>
+              <option value="Roda">Roda</option>
+              <option value="Correia">Correia</option>
+              <option value="Bateria">Bateria</option>
+              <option value="Carroceria">Carroceria</option>
+              <option value="Acessorios">Acessórios</option>
+              <option value="Outros">Outros</option>
+            </select>
+            <small class="field-error" data-error-for="categoria"></small>
+          </div>
+
+          <div class="form-field">
+            <label for="unidadeMedida">Unidade *</label>
+            <select id="unidadeMedida" name="unidadeMedida" required>
+              <option value="">Selecione</option>
+              <option value="UN">UN</option>
+              <option value="L">L</option>
+              <option value="KG">KG</option>
+              <option value="M">M</option>
+              <option value="CX">CX</option>
+            </select>
+            <small class="field-error" data-error-for="unidadeMedida"></small>
+          </div>
+
+          <div class="form-field form-field-wide">
+            <label for="codigoBarras">Código de barras</label>
+            <input id="codigoBarras" name="codigoBarras" type="text" autocomplete="off" placeholder="Opcional">
+            <small class="field-error" data-error-for="codigoBarras"></small>
+          </div>
+
+          <div class="form-field">
+            <label for="quantidade">Quantidade *</label>
+            <input id="quantidade" name="quantidade" type="text" inputmode="decimal" placeholder="0" required>
+            <small class="field-help hidden" id="quantidadeEditHelp">Use Entrada ou Saída para alterar a quantidade.</small>
+            <small class="field-error" data-error-for="quantidade"></small>
+          </div>
+
+          <div class="form-field">
+            <label for="estoqueMinimo">Estoque mínimo *</label>
+            <input id="estoqueMinimo" name="estoqueMinimo" type="text" inputmode="decimal" placeholder="0" required>
+            <small class="field-error" data-error-for="estoqueMinimo"></small>
+          </div>
+
+          <div class="form-field form-field-wide">
+            <label for="precoUnitario">Preço unitário *</label>
+            <input id="precoUnitario" name="precoUnitario" type="text" inputmode="decimal" placeholder="R$ 0,00" required>
+            <small class="field-error" data-error-for="precoUnitario"></small>
+          </div>
+        </div>
+
+        <div class="estoque-modal-actions">
+          <button class="btn btn-secondary" type="button" id="btnCancelarPeca">Cancelar</button>
+          <button class="btn btn-primary" type="submit" id="btnSalvarPeca">Cadastrar</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <!-- Entrada -->
+  <div class="modal-backdrop hidden" id="entradaModal" aria-hidden="true">
+    <section class="estoque-modal estoque-movimento-modal" role="dialog" aria-modal="true" aria-labelledby="entradaModalTitle">
+      <div class="estoque-modal-header">
+        <div>
+          <h2 id="entradaModalTitle">Entrada de estoque</h2>
+          <p id="entradaPecaNome">—</p>
+        </div>
+        <button class="estoque-modal-close" type="button" id="btnFecharEntradaModal" aria-label="Fechar">×</button>
+      </div>
+      <form id="entradaForm" novalidate>
+        <div class="movimento-resumo">
+          <span>Estoque atual</span>
+          <strong id="entradaEstoqueAtual">—</strong>
+        </div>
+        <div class="estoque-form-grid">
+          <div class="form-field">
+            <label for="quantidadeEntrada">Quantidade de entrada *</label>
+            <input id="quantidadeEntrada" type="text" inputmode="decimal" placeholder="0" required>
+            <small class="field-error" data-error-for="quantidadeEntrada"></small>
+          </div>
+          <div class="form-field">
+            <label for="precoUnitarioEntrada">Preço unitário da entrada *</label>
+            <input id="precoUnitarioEntrada" type="text" inputmode="decimal" placeholder="R$ 0,00" required>
+            <small class="field-error" data-error-for="precoUnitarioEntrada"></small>
+          </div>
+        </div>
+        <div class="estoque-modal-actions">
+          <button class="btn btn-secondary" type="button" id="btnCancelarEntrada">Cancelar</button>
+          <button class="btn btn-primary" type="submit" id="btnConfirmarEntrada">Confirmar entrada</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <!-- Saída -->
+  <div class="modal-backdrop hidden" id="saidaModal" aria-hidden="true">
+    <section class="estoque-modal estoque-movimento-modal" role="dialog" aria-modal="true" aria-labelledby="saidaModalTitle">
+      <div class="estoque-modal-header">
+        <div>
+          <h2 id="saidaModalTitle">Saída de estoque</h2>
+          <p id="saidaPecaNome">—</p>
+        </div>
+        <button class="estoque-modal-close" type="button" id="btnFecharSaidaModal" aria-label="Fechar">×</button>
+      </div>
+      <form id="saidaForm" novalidate>
+        <div class="movimento-resumo">
+          <span>Estoque atual</span>
+          <strong id="saidaEstoqueAtual">—</strong>
+        </div>
+        <div class="form-field">
+          <label for="quantidadeSaida">Quantidade de saída *</label>
+          <input id="quantidadeSaida" type="text" inputmode="decimal" placeholder="0" required>
+          <small class="field-error" data-error-for="quantidadeSaida"></small>
+        </div>
+        <div class="estoque-modal-actions">
+          <button class="btn btn-secondary" type="button" id="btnCancelarSaida">Cancelar</button>
+          <button class="btn btn-primary" type="submit" id="btnConfirmarSaida">Confirmar saída</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <!-- Exclusão -->
+  <div class="modal-backdrop hidden" id="deletePecaModal" aria-hidden="true">
+    <section class="delete-modal" role="dialog" aria-modal="true" aria-labelledby="deletePecaTitle">
+      <div class="estoque-modal-header">
+        <div>
+          <h2 id="deletePecaTitle">Excluir item?</h2>
+          <p>Essa ação não pode ser desfeita.</p>
+        </div>
+        <button class="estoque-modal-close" type="button" id="btnFecharDeleteModal" aria-label="Fechar">×</button>
+      </div>
+      <div class="delete-modal-body">
+        <p>Deseja realmente excluir <strong id="deletePecaNome">—</strong> do estoque?</p>
+      </div>
+      <div class="estoque-modal-actions">
+        <button class="btn btn-secondary" type="button" id="btnCancelarDelete">Cancelar</button>
+        <button class="btn btn-danger" type="button" id="btnConfirmarDelete">Excluir</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="../global/js/config.js"></script>
+  <script src="../global/js/api.js"></script>
+  <script src="../global/js/session.js"></script>
+  <script src="../global/js/menu.js"></script>
+  <script src="../global/js/layout.js"></script>
+  <script src="../global/js/toast.js"></script>
+  <script src="../global/js/formatters.js"></script>
+  <script src="./estoque.js"></script>
+</body>
+</html>

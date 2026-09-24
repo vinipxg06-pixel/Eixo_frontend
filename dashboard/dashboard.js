@@ -1,0 +1,2 @@
+renderMenu('dashboard');
+renderHeader('Dashboard');

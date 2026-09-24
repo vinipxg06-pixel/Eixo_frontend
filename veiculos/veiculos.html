@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EIXO — Veículos</title>
+  <link rel="stylesheet" href="../global/css/global.css">
+  <link rel="stylesheet" href="../global/css/menu.css">
+  <link rel="stylesheet" href="../global/css/toast.css">
+  <link rel="stylesheet" href="./veiculos.css">
+</head>
+<body>
+  <div class="app-layout">
+    <div data-menu></div>
+    <div class="app-content">
+      <header data-header></header>
+
+      <main class="app-main veiculos-page">
+        <div class="veiculos-topbar">
+          <div>
+            <h1 class="page-title">Veículos</h1>
+            <p class="veiculos-subtitle" id="veiculosCount">Carregando...</p>
+          </div>
+
+          <div class="veiculos-actions">
+            <div class="veiculos-search-wrap">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="11" cy="11" r="7"></circle>
+                <path d="m20 20-3.8-3.8"></path>
+              </svg>
+              <input id="buscaVeiculo" type="search" placeholder="Buscar..." autocomplete="off" aria-label="Buscar veículo">
+            </div>
+            <button class="btn btn-primary btn-novo-veiculo" type="button" id="btnNovoVeiculo">+ Novo</button>
+          </div>
+        </div>
+
+        <section class="veiculos-table-shell">
+          <div class="veiculos-loading" id="veiculosLoading">
+            <span class="loading-spinner"></span>
+            <span>Carregando veículos...</span>
+          </div>
+
+          <div class="veiculos-table-wrap hidden" id="veiculosTableWrap">
+            <table class="veiculos-table">
+              <thead>
+                <tr>
+                  <th>Placa</th>
+                  <th>Marca</th>
+                  <th>Modelo</th>
+                  <th>Ano</th>
+                  <th>Cor</th>
+                  <th>Combustível</th>
+                  <th>Km</th>
+                  <th>Proprietário</th>
+                  <th class="veiculos-actions-col" aria-label="Ações"></th>
+                </tr>
+              </thead>
+              <tbody id="veiculosTableBody"></tbody>
+            </table>
+          </div>
+
+          <div class="veiculos-empty hidden" id="veiculosEmpty">
+            <strong>Nenhum veículo encontrado</strong>
+            <span id="veiculosEmptyText">Cadastre o primeiro veículo da oficina.</span>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="veiculoModal" aria-hidden="true">
+    <section class="veiculo-modal" role="dialog" aria-modal="true" aria-labelledby="veiculoModalTitle">
+      <div class="veiculo-modal-header">
+        <h2 id="veiculoModalTitle">Novo veículo</h2>
+        <button class="veiculo-modal-close" type="button" id="btnFecharVeiculoModal" aria-label="Fechar">×</button>
+      </div>
+
+      <form id="veiculoForm" novalidate>
+        <div class="veiculo-form-grid">
+          <div class="form-field">
+            <label for="placa">Placa *</label>
+            <input id="placa" name="placa" type="text" maxlength="8" autocomplete="off" placeholder="ABC-1D23" required>
+            <small class="field-error" data-error-for="placa"></small>
+          </div>
+
+          <div class="form-field">
+            <label for="clienteId">Proprietário *</label>
+            <select id="clienteId" name="clienteId" required>
+              <option value="">Selecione</option>
+            </select>
+            <small class="field-help hidden" id="proprietarioEditHelp">O proprietário não pode ser alterado na edição.</small>
+            <small class="field-error" data-error-for="clienteId"></small>
+          </div>
+
+          <div class="form-field">
+            <label for="marcaId">Marca *</label>
+            <select id="marcaId" name="marcaId" required>
+              <option value="">Selecione</option>
+            </select>
+            <small class="field-error" data-error-for="marcaId"></small>
+          </div>
+
+          <div class="form-field">
+            <label for="modeloId">Modelo *</label>
+            <select id="modeloId" name="modeloId" disabled required>
+              <option value="">Selecione uma marca</option>
+            </select>
+            <small class="field-error" data-error-for="modeloId"></small>
+          </div>
+
+          <div class="form-field">
+            <label for="ano">Ano *</label>
+            <input id="ano" name="ano" type="text" maxlength="4" inputmode="numeric" placeholder="2024" required>
+            <small class="field-error" data-error-for="ano"></small>
+          </div>
+
+          <div class="form-field">
+            <label for="quilometragem">Quilometragem *</label>
+            <input id="quilometragem" name="quilometragem" type="text" inputmode="numeric" placeholder="0" required>
+            <small class="field-error" data-error-for="quilometragem"></small>
+          </div>
+
+          <div class="form-field">
+            <label for="cor">Cor *</label>
+            <select id="cor" name="cor" required>
+              <option value="">Selecione</option>
+              <option value="Preto">Preto</option>
+              <option value="Branco">Branco</option>
+              <option value="Vermelho">Vermelho</option>
+              <option value="Prata">Prata</option>
+              <option value="Cinza">Cinza</option>
+              <option value="Verde">Verde</option>
+              <option value="Azul">Azul</option>
+            </select>
+            <small class="field-error" data-error-for="cor"></small>
+          </div>
+
+          <div class="form-field">
+            <label for="combustivel">Combustível *</label>
+            <select id="combustivel" name="combustivel" required>
+              <option value="">Selecione</option>
+              <option value="Gasolina">Gasolina</option>
+              <option value="Flex">Flex</option>
+              <option value="Hibrido">Híbrido</option>
+              <option value="Eletrico">Elétrico</option>
+              <option value="Diesel">Diesel</option>
+              <option value="Etanol">Etanol</option>
+            </select>
+            <small class="field-error" data-error-for="combustivel"></small>
+          </div>
+        </div>
+
+        <div class="veiculo-modal-actions">
+          <button class="btn btn-secondary" type="button" id="btnCancelarVeiculo">Cancelar</button>
+          <button class="btn btn-primary" type="submit" id="btnSalvarVeiculo">Adicionar</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div class="modal-backdrop hidden" id="deleteVeiculoModal" aria-hidden="true">
+    <section class="delete-modal" role="dialog" aria-modal="true" aria-labelledby="deleteVeiculoTitle">
+      <div class="delete-modal-header">
+        <h2 id="deleteVeiculoTitle">Excluir veículo?</h2>
+        <button class="veiculo-modal-close" type="button" id="btnFecharDeleteModal" aria-label="Fechar">×</button>
+      </div>
+      <div class="delete-modal-body">
+        <p>Deseja realmente excluir o veículo <strong id="deleteVeiculoPlaca">—</strong>?</p>
+        <span>Essa ação não pode ser desfeita.</span>
+      </div>
+      <div class="delete-modal-actions">
+        <button class="btn btn-secondary" type="button" id="btnCancelarDelete">Cancelar</button>
+        <button class="btn btn-danger" type="button" id="btnConfirmarDelete">Excluir</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="../global/js/config.js"></script>
+  <script src="../global/js/api.js"></script>
+  <script src="../global/js/session.js"></script>
+  <script src="../global/js/menu.js"></script>
+  <script src="../global/js/layout.js"></script>
+  <script src="../global/js/toast.js"></script>
+  <script src="../global/js/formatters.js"></script>
+  <script src="./veiculos.js"></script>
+</body>
+</html>

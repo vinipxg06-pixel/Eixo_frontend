@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EIXO — Fluxo de Caixa</title>
+  <link rel="stylesheet" href="../global/css/global.css">
+  <link rel="stylesheet" href="../global/css/menu.css">
+  <link rel="stylesheet" href="../global/css/toast.css">
+  <link rel="stylesheet" href="./fluxo-caixa.css">
+</head>
+<body>
+  <div class="app-layout">
+    <div data-menu></div>
+
+    <div class="app-content">
+      <header data-header></header>
+
+      <main class="app-main fluxo-page">
+        <section class="fluxo-topbar">
+          <div>
+            <h1 class="page-title">Fluxo de Caixa</h1>
+            <p class="fluxo-subtitle" id="fluxoSubtitle">Lançamentos do período</p>
+          </div>
+
+          <button class="btn btn-primary btn-novo-lancamento" id="btnNovoLancamento" type="button">
+            <span aria-hidden="true">＋</span> Lançamento
+          </button>
+        </section>
+
+        <section class="fluxo-summary" aria-label="Resumo financeiro">
+          <article class="fluxo-summary-card card-entrada">
+            <div class="summary-card-head">
+              <span>Total de Entradas</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 16V8M8.5 11.5 12 8l3.5 3.5"></path></svg>
+            </div>
+            <strong id="totalEntradas">R$ 0,00</strong>
+            <span class="summary-accent"></span>
+          </article>
+
+          <article class="fluxo-summary-card card-saida">
+            <div class="summary-card-head">
+              <span>Total de Saídas</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v8m3.5-3.5L12 16l-3.5-3.5"></path></svg>
+            </div>
+            <strong id="totalSaidas">R$ 0,00</strong>
+            <span class="summary-accent"></span>
+          </article>
+
+          <article class="fluxo-summary-card card-saldo" id="saldoCard">
+            <div class="summary-card-head">
+              <span>Saldo do Período</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16l5-5 4 4 7-8"></path><path d="M15 7h5v5"></path></svg>
+            </div>
+            <strong id="saldoPeriodo">R$ 0,00</strong>
+            <span class="summary-accent"></span>
+          </article>
+        </section>
+
+        <section class="fluxo-filters" aria-label="Filtrar movimentações">
+          <button class="fluxo-filter active" type="button" data-filter="Todos">Todos</button>
+          <button class="fluxo-filter" type="button" data-filter="Entrada">Entradas</button>
+          <button class="fluxo-filter" type="button" data-filter="Saida">Saídas</button>
+        </section>
+
+        <section class="fluxo-table-shell">
+          <div class="fluxo-loading" id="fluxoLoading">
+            <span class="loading-spinner"></span>
+            <span>Carregando movimentações...</span>
+          </div>
+
+          <div class="fluxo-empty hidden" id="fluxoEmpty">
+            <strong>Nenhum lançamento</strong>
+            <span>Não há movimentações para o filtro selecionado.</span>
+          </div>
+
+          <div class="fluxo-table-wrap hidden" id="fluxoTableWrap">
+            <table class="fluxo-table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Descrição</th>
+                  <th>Categoria</th>
+                  <th>OS</th>
+                  <th>Tipo</th>
+                  <th>Valor</th>
+                  <th class="fluxo-actions-col">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="fluxoTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="lancamentoModal" aria-hidden="true">
+    <section class="fluxo-modal" role="dialog" aria-modal="true" aria-labelledby="lancamentoModalTitle">
+      <div class="fluxo-modal-header">
+        <div>
+          <h2 id="lancamentoModalTitle">Novo Lançamento</h2>
+          <p id="lancamentoModalSubtitle">Registre uma entrada ou saída manual.</p>
+        </div>
+        <button class="fluxo-modal-close" type="button" id="btnFecharLancamentoModal" aria-label="Fechar">×</button>
+      </div>
+
+      <form id="lancamentoForm" novalidate>
+        <div class="fluxo-modal-body">
+          <div class="field field-span-2">
+            <label for="descricao">Descrição *</label>
+            <input id="descricao" name="descricao" type="text" maxlength="100" placeholder="Descrição do lançamento" required>
+          </div>
+
+          <div class="field">
+            <label for="tipo">Tipo *</label>
+            <select id="tipo" name="tipo" required>
+              <option value="Entrada">Entrada</option>
+              <option value="Saida">Saída</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="categoria">Categoria *</label>
+            <select id="categoria" name="categoria" required></select>
+          </div>
+
+          <div class="field field-span-2">
+            <label for="valor">Valor *</label>
+            <input id="valor" name="valor" type="text" inputmode="numeric" placeholder="R$ 0,00" autocomplete="off" required>
+          </div>
+        </div>
+
+        <div class="fluxo-modal-actions">
+          <button class="btn btn-secondary" type="button" id="btnCancelarLancamento">Cancelar</button>
+          <button class="btn btn-primary" type="submit" id="btnSalvarLancamento">Lançar</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div class="modal-backdrop hidden" id="deleteLancamentoModal" aria-hidden="true">
+    <section class="delete-modal" role="dialog" aria-modal="true" aria-labelledby="deleteLancamentoTitle">
+      <div class="fluxo-modal-header">
+        <div>
+          <h2 id="deleteLancamentoTitle">Excluir lançamento?</h2>
+          <p>Essa ação não pode ser desfeita.</p>
+        </div>
+        <button class="fluxo-modal-close" type="button" id="btnFecharDeleteLancamento" aria-label="Fechar">×</button>
+      </div>
+      <div class="delete-modal-body">
+        <p>Deseja realmente excluir <strong id="deleteLancamentoDescricao">—</strong>?</p>
+      </div>
+      <div class="fluxo-modal-actions">
+        <button class="btn btn-secondary" type="button" id="btnCancelarDeleteLancamento">Cancelar</button>
+        <button class="btn btn-danger" type="button" id="btnConfirmarDeleteLancamento">Excluir</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="../global/js/config.js"></script>
+  <script src="../global/js/api.js"></script>
+  <script src="../global/js/session.js"></script>
+  <script src="../global/js/menu.js"></script>
+  <script src="../global/js/layout.js"></script>
+  <script src="../global/js/toast.js"></script>
+  <script src="../global/js/formatters.js"></script>
+  <script src="./fluxo-caixa.js"></script>
+</body>
+</html>
