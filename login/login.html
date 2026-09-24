@@ -1,26 +1,25 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EIXO — Sistema de Gestão de Oficinas</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="login.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EIXO — Sistema de Gestão de Oficinas</title>
+
+  <link rel="stylesheet" href="../global/css/global.css">
+  <link rel="stylesheet" href="../global/css/toast.css">
+  <link rel="stylesheet" href="login.css">
 </head>
 <body>
 
-  <div class="login-page">
+  <main class="login-page">
 
-    <!-- Painel esquerdo — visual -->
-    <div class="side-left">
+    <section class="side-left" aria-label="Apresentação do sistema">
       <div class="grid-overlay"></div>
       <div class="top-accent"></div>
 
       <div class="left-content">
         <div class="logo-wrap">
-          <img src="logoeixo.png" alt="EIXO" class="logo-img">
+          <img src="../assets/images/logoeixo.png" alt="EIXO" class="logo-img">
         </div>
 
         <h2 class="left-title">Sistema de Gestão</h2>
@@ -35,11 +34,10 @@
           <div class="feature-item"><span class="feature-dot"></span><span>Fluxo de Caixa</span></div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Painel direito — formulário -->
-    <div class="side-right">
-      <form class="form-wrap" action="#" method="post">
+    <section class="side-right">
+      <form class="form-wrap" id="login-form" novalidate>
 
         <div class="form-header">
           <h1 class="welcome-title">Bem-vindo</h1>
@@ -47,22 +45,43 @@
         </div>
 
         <div class="field-group">
-          <label for="usuario">Usuário</label>
-          <input type="text" id="usuario" name="usuario" placeholder="seu.usuario" autocomplete="off">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="seu@email.com"
+            autocomplete="email"
+            required
+          >
         </div>
 
         <div class="field-group senha-group">
           <label for="senha">Senha</label>
 
           <div class="senha-wrap">
-            <input type="password" id="senha" name="senha" class="senha-field" placeholder="••••••••" autocomplete="off">
+            <input
+              type="password"
+              id="senha"
+              name="senha"
+              class="senha-field"
+              placeholder="••••••••"
+              autocomplete="current-password"
+              required
+            >
 
-            <span class="toggle-senha" aria-hidden="true">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <button
+              type="button"
+              class="toggle-senha"
+              id="toggle-senha"
+              aria-label="Mostrar senha"
+              title="Mostrar senha"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/>
                 <circle cx="12" cy="12" r="3"/>
               </svg>
-            </span>
+            </button>
           </div>
         </div>
 
@@ -70,20 +89,24 @@
           <a href="#" class="forgot-link">Esqueci minha senha</a>
         </div>
 
-        <button type="submit" class="btn-entrar">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <button type="submit" class="btn-entrar" id="btn-entrar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5zm-3 8V6a3 3 0 0 1 6 0v3z"/>
           </svg>
-          Entrar no Sistema
+          <span class="btn-text">Entrar no Sistema</span>
         </button>
 
         <p class="footer-note">EIXO © 2026 — Sistema de Gestão de Oficinas</p>
 
       </form>
-    </div>
+    </section>
 
-  </div>
+  </main>
 
+  <script src="../global/js/config.js"></script>
+  <script src="../global/js/api.js"></script>
+  <script src="../global/js/session.js"></script>
+  <script src="../global/js/toast.js"></script>
+  <script src="login.js"></script>
 </body>
-<script src="login.js"></script>
 </html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EIXO — Orçamentos</title>
+  <link rel="stylesheet" href="../global/css/global.css">
+  <link rel="stylesheet" href="../global/css/menu.css">
+  <link rel="stylesheet" href="../global/css/toast.css">
+  <link rel="stylesheet" href="./orcamentos.css">
+</head>
+<body>
+  <div class="app-layout">
+    <div data-menu></div>
+
+    <div class="app-content">
+      <header data-header></header>
+
+      <main class="app-main orcamentos-page">
+        <div class="orcamentos-topbar">
+          <div>
+            <h1 class="page-title">ORÇAMENTOS</h1>
+            <p class="orcamentos-subtitle" id="orcamentosCount">0 cadastrados</p>
+          </div>
+
+          <div class="orcamentos-actions">
+            <label class="orcamentos-search-wrap" aria-label="Buscar orçamento">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.2-3.2"></path></svg>
+              <input id="buscaOrcamento" type="search" placeholder="Buscar..." autocomplete="off">
+            </label>
+            <button class="btn-primary btn-novo-orcamento" id="btnNovoOrcamento" type="button">+ NOVO</button>
+          </div>
+        </div>
+
+        <section class="orcamentos-table-shell">
+          <div id="orcamentosLoading" class="orcamentos-loading">
+            <div class="loading-spinner"></div>
+            <span>Carregando orçamentos...</span>
+          </div>
+
+          <div id="orcamentosTableWrap" class="orcamentos-table-wrap hidden">
+            <table class="orcamentos-table">
+              <thead>
+                <tr>
+                  <th>Nº</th>
+                  <th>Cliente</th>
+                  <th>Veículo</th>
+                  <th>Data</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th class="orcamentos-actions-col">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="orcamentosTableBody"></tbody>
+            </table>
+          </div>
+
+          <div id="orcamentosEmpty" class="orcamentos-empty hidden">
+            <strong>Nenhum orçamento</strong>
+            <span id="orcamentosEmptyText">Crie o primeiro orçamento da oficina.</span>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal criação / edição -->
+  <div class="budget-modal-backdrop hidden" id="orcamentoModal" aria-hidden="true">
+    <section class="budget-modal budget-modal-wide" role="dialog" aria-modal="true" aria-labelledby="orcamentoModalTitle">
+      <header class="budget-modal-header">
+        <div>
+          <span class="budget-modal-eyebrow">ORÇAMENTO</span>
+          <h2 id="orcamentoModalTitle">Novo orçamento</h2>
+        </div>
+        <button class="budget-modal-close" id="btnFecharOrcamentoModal" type="button" aria-label="Fechar">×</button>
+      </header>
+
+      <form id="orcamentoForm">
+        <div class="budget-modal-body custom-scrollbar">
+          <div class="budget-grid">
+            <div class="budget-field">
+              <label for="clienteId">Cliente *</label>
+              <select id="clienteId">
+                <option value="">Selecione</option>
+              </select>
+              <small class="field-error" data-error-for="clienteId"></small>
+            </div>
+
+            <div class="budget-field">
+              <label for="veiculoId">Veículo *</label>
+              <select id="veiculoId" disabled>
+                <option value="">Selecione um cliente</option>
+              </select>
+              <small class="field-error" data-error-for="veiculoId"></small>
+            </div>
+
+            <div class="budget-field">
+              <label for="maoDeObra">Mão de obra</label>
+              <input id="maoDeObra" inputmode="numeric" placeholder="R$ 0,00" autocomplete="off">
+              <small class="field-error" data-error-for="maoDeObra"></small>
+            </div>
+
+            <div class="budget-field budget-status-field hidden" id="statusField">
+              <label>Status atual</label>
+              <div id="modalStatusBadge"></div>
+              <small>O status é alterado pelos comandos Aprovar ou Recusar.</small>
+            </div>
+
+            <div class="budget-field budget-field-full">
+              <label for="descricao">Descrição *</label>
+              <input id="descricao" maxlength="100" placeholder="Detalhes do orçamento..." autocomplete="off">
+              <small class="field-error" data-error-for="descricao"></small>
+            </div>
+          </div>
+
+          <section class="budget-parts-section">
+            <div class="budget-parts-heading">
+              <div>
+                <span class="budget-section-kicker">PEÇAS</span>
+                <p>Itens do estoque vinculados ao orçamento.</p>
+              </div>
+              <button id="btnAdicionarLinhaPeca" class="budget-secondary-btn" type="button">+ ADICIONAR PEÇA</button>
+            </div>
+
+            <div id="pecasEditor" class="budget-parts-list"></div>
+            <p id="pecasEmptyHint" class="budget-parts-empty">Nenhuma peça adicionada.</p>
+          </section>
+
+          <section class="budget-summary">
+            <div><span>Peças</span><strong id="resumoPecas">R$ 0,00</strong></div>
+            <div><span>Mão de obra</span><strong id="resumoMaoDeObra">R$ 0,00</strong></div>
+            <div class="budget-summary-total"><span>Total</span><strong id="resumoTotal">R$ 0,00</strong></div>
+          </section>
+        </div>
+
+        <footer class="budget-modal-footer">
+          <button class="btn-secondary" id="btnCancelarOrcamento" type="button">CANCELAR</button>
+          <button class="btn-primary" id="btnSalvarOrcamento" type="submit">CRIAR</button>
+        </footer>
+      </form>
+    </section>
+  </div>
+
+  <!-- Confirmação genérica para aprovar/recusar/excluir -->
+  <div class="budget-modal-backdrop hidden" id="acaoOrcamentoModal" aria-hidden="true">
+    <section class="budget-modal budget-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="acaoOrcamentoTitle">
+      <header class="budget-modal-header">
+        <div>
+          <span class="budget-modal-eyebrow" id="acaoOrcamentoEyebrow">CONFIRMAÇÃO</span>
+          <h2 id="acaoOrcamentoTitle">Confirmar ação</h2>
+        </div>
+        <button class="budget-modal-close" id="btnFecharAcaoModal" type="button" aria-label="Fechar">×</button>
+      </header>
+      <div class="budget-confirm-body">
+        <p id="acaoOrcamentoTexto"></p>
+      </div>
+      <footer class="budget-modal-footer">
+        <button class="btn-secondary" id="btnCancelarAcao" type="button">CANCELAR</button>
+        <button class="btn-primary" id="btnConfirmarAcao" type="button">CONFIRMAR</button>
+      </footer>
+    </section>
+  </div>
+
+  <script src="../global/js/config.js"></script>
+  <script src="../global/js/api.js"></script>
+  <script src="../global/js/session.js"></script>
+  <script src="../global/js/menu.js"></script>
+  <script src="../global/js/layout.js"></script>
+  <script src="../global/js/toast.js"></script>
+  <script src="../global/js/formatters.js"></script>
+  <script src="./orcamentos.js"></script>
+</body>
+</html>

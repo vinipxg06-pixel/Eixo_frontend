@@ -1,41 +1,68 @@
-const form = document.querySelector(".form-wrap");
+const loginForm = document.getElementById('login-form');
+const emailInput = document.getElementById('email');
+const senhaInput = document.getElementById('senha');
+const toggleSenhaButton = document.getElementById('toggle-senha');
+const entrarButton = document.getElementById('btn-entrar');
+const entrarButtonText = entrarButton.querySelector('.btn-text');
 
-form.addEventListener("submit", async (event) => {
-    event.preventDefault();
+function setLoading(isLoading) {
+  entrarButton.disabled = isLoading;
+  entrarButtonText.textContent = isLoading ? 'Entrando...' : 'Entrar no Sistema';
+}
 
-    const email = document.getElementById("usuario").value.trim();
-    const senha = document.getElementById("senha").value;
+function toggleSenha() {
+  const senhaVisivel = senhaInput.type === 'text';
 
-    try {
-        const response = await fetch("http://localhost:8082/usuarios/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                email: email,
-                senha: senha
-            })
-        });
+  senhaInput.type = senhaVisivel ? 'password' : 'text';
+  toggleSenhaButton.setAttribute('aria-label', senhaVisivel ? 'Mostrar senha' : 'Ocultar senha');
+  toggleSenhaButton.setAttribute('title', senhaVisivel ? 'Mostrar senha' : 'Ocultar senha');
+}
 
-        if (response.status === 404) {
-            alert("Endpoint de login não encontrado no backend.");
-            return;
-        }
+toggleSenhaButton.addEventListener('click', toggleSenha);
 
-        if (!response.ok) {
-            alert("Email ou senha inválidos.");
-            return;
-        }
+loginForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
 
-        const dados = await response.json();
+  const email = emailInput.value.trim();
+  const senha = senhaInput.value;
 
-        console.log("Login:", dados);
+  if (!email || !senha) {
+    showToast('Informe o email e a senha para continuar.', 'warning');
+    return;
+  }
 
-        alert("Login realizado com sucesso!");
+  setLoading(true);
 
-    } catch (erro) {
-        console.error(erro);
-        alert("Não foi possível conectar ao servidor.");
+  try {
+    const dados = await apiRequest('/usuarios/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, senha })
+    });
+
+    Session.saveLogin(dados);
+
+    showToast('Login realizado com sucesso!', 'success');
+
+    setTimeout(() => {
+      window.location.href = '../dashboard/dashboard.html';
+    }, 500);
+
+  } catch (erro) {
+    console.error('Erro ao realizar login:', erro);
+
+    if (erro.status === 404) {
+      showToast('Email ou senha inválidos.', 'error');
+      return;
     }
+
+    if (erro.status === 400 || erro.status === 401 || erro.status === 403) {
+      showToast(erro.body?.message || 'Email ou senha inválidos.', 'error');
+      return;
+    }
+
+    showToast('Não foi possível conectar ao servidor.', 'error');
+
+  } finally {
+    setLoading(false);
+  }
 });
