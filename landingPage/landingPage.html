@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Eixo — Sistema de Gerenciamento de Oficina</title>
+  <meta name="description" content="Clientes, veículos, ordens de serviço, estoque e fluxo de caixa em um só sistema, feito para oficinas pequenas e médias.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body id="topo">
+
+  <div class="barra-topo" aria-hidden="true"></div>
+
+  <header class="cabecalho">
+    <div class="container cabecalho__conteudo">
+      <a href="#topo" class="cabecalho__logo" aria-label="Eixo, voltar ao início">
+        <img src="eixo-logo-branco.png" alt="Eixo — Sistema de Gerenciamento de Oficina" width="132" height="44">
+      </a>
+
+      <nav class="cabecalho__nav" aria-label="Principal">
+        <a class="link-nav" href="#modulos">Módulos</a>
+        <a class="link-nav" href="#como-funciona">Como funciona</a>
+        <a class="link-nav" href="#contato">Contato</a>
+      </nav>
+
+      <div class="cabecalho__acoes">
+        <a class="btn btn--contorno btn--pequeno" href="../login/login.html">
+          <svg class="icone" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Entrar
+        </a>
+        <a class="btn btn--primario btn--pequeno cabecalho__demo" href="#video">Demonstração</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero__conteudo">
+        <div class="hero__texto">
+          <h1 class="hero__titulo">Sua oficina<br>no eixo.</h1>
+          <p class="hero__descricao">Clientes, veículos, ordens de serviço, estoque e fluxo de caixa em um só sistema, feito para a rotina de oficinas pequenas e médias.</p>
+          <div class="hero__botoes">
+            <a class="btn btn--primario" href="#video">Demonstração</a>
+            <a class="btn btn--contorno" href="../login/login.html">
+              <svg class="icone" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Entrar no sistema
+            </a>
+          </div>
+        </div>
+
+        <!-- Exemplo de ordem de serviço -->
+        <article class="os" aria-label="Exemplo de ordem de serviço no Eixo">
+          <div class="os__topo">
+            <div class="os__numero">
+              <span class="rotulo">Ordem de serviço</span>
+              <span class="os__codigo">Nº 1048</span>
+            </div>
+            <span class="status"><span class="status__ponto"></span>Em execução</span>
+          </div>
+
+          <div class="os__veiculo">
+            <div class="placa" role="img" aria-label="Placa BRA2E19">
+              <div class="placa__faixa">BRASIL</div>
+              <div class="placa__numero">BRA2E19</div>
+            </div>
+            <div class="os__veiculo-info">
+              <span class="os__modelo">Fiat Strada 1.3</span>
+              <dl class="os__dados">
+                <div><dt class="rotulo">Cliente</dt><dd>Carlos Mendes</dd></div>
+                <div><dt class="rotulo">Ano</dt><dd>2021</dd></div>
+                <div><dt class="rotulo">Km</dt><dd>48.320</dd></div>
+              </dl>
+            </div>
+          </div>
+
+          <div class="os__itens">
+            <div class="os__itens-cabecalho rotulo"><span>Item</span><span>Valor</span></div>
+            <div class="os__item">
+              <div class="os__item-nome"><span>Óleo 5W30 sintético (4 L)</span><span class="tag">Peça</span></div>
+              <span class="os__valor">R$ 180,00</span>
+            </div>
+            <div class="os__item">
+              <div class="os__item-nome"><span>Filtro de óleo</span><span class="tag">Peça</span></div>
+              <span class="os__valor">R$ 45,00</span>
+            </div>
+            <div class="os__item">
+              <div class="os__item-nome"><span>Pastilhas de freio dianteiras</span><span class="tag">Peça</span></div>
+              <span class="os__valor">R$ 210,00</span>
+            </div>
+            <div class="os__item">
+              <div class="os__item-nome"><span>Mão de obra</span><span class="tag">Serviço</span></div>
+              <span class="os__valor">R$ 150,00</span>
+            </div>
+          </div>
+
+          <div class="os__total">
+            <span class="rotulo">Total</span>
+            <span class="os__total-valor">R$ 585,00</span>
+          </div>
+
+          <ol class="os__etapas" aria-label="Etapa atual: execução">
+            <li class="os__etapa os__etapa--feita">Recepção</li>
+            <li class="os__etapa os__etapa--feita">Orçamento</li>
+            <li class="os__etapa os__etapa--atual" aria-current="step">Execução</li>
+            <li class="os__etapa">Entrega</li>
+          </ol>
+        </article>
+      </div>
+    </section>
+
+    <!-- ESPECIALIDADES -->
+    <section class="faixa" aria-label="Tipos de oficina atendidos">
+      <div class="container faixa__conteudo">
+        <span class="rotulo">Para oficinas de</span>
+        <ul class="faixa__lista">
+          <li>Mecânica geral</li>
+          <li>Freios e suspensão</li>
+          <li>Elétrica</li>
+          <li>Injeção eletrônica</li>
+          <li>Alinhamento e balanceamento</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- MÓDULOS -->
+    <section class="secao" id="modulos">
+      <div class="container">
+        <div class="secao__cabecalho">
+          <h2 class="secao__titulo">O que a oficina precisa. Nada além.</h2>
+          <p class="secao__descricao">Quatro módulos ligados entre si: a peça usada na OS sai do estoque e o pagamento entra direto no caixa.</p>
+        </div>
+
+        <div class="modulos">
+          <div class="modulo">
+            <svg class="icone icone--destaque" width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
+            <h3 class="modulo__titulo">Clientes &amp; Veículos</h3>
+            <p class="modulo__texto">Cadastro pela placa, com histórico de serviços, peças trocadas e quilometragem de cada veículo.</p>
+          </div>
+
+          <div class="modulo">
+            <svg class="icone icone--destaque" width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+            <h3 class="modulo__titulo">Ordens de Serviço</h3>
+            <p class="modulo__texto">Do orçamento à entrega: peças, mão de obra, mecânico responsável e status de cada OS.</p>
+          </div>
+
+          <div class="modulo">
+            <svg class="icone icone--destaque" width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+            <h3 class="modulo__titulo">Estoque</h3>
+            <p class="modulo__texto">Entrada e saída de peças, óleos e insumos, com o saldo atualizado a cada OS fechada.</p>
+          </div>
+
+          <div class="modulo">
+            <svg class="icone icone--destaque" width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+            <h3 class="modulo__titulo">Fluxo de Caixa</h3>
+            <p class="modulo__texto">Recebimentos e despesas do dia, por forma de pagamento, com o saldo da oficina sempre à vista.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMO FUNCIONA -->
+    <section class="secao secao--escura" id="como-funciona">
+      <div class="container">
+        <div class="secao__cabecalho">
+          <h2 class="secao__titulo">Da chegada<br>à entrega.</h2>
+          <p class="secao__descricao">Cada carro segue o mesmo caminho na oficina, e cada etapa fica registrada no histórico do veículo.</p>
+        </div>
+
+        <ol class="etapas">
+          <li class="etapa">
+            <div class="etapa__trilho" aria-hidden="true"></div>
+            <span class="etapa__numero">01</span>
+            <h3 class="etapa__titulo">Recepção</h3>
+            <p class="etapa__texto">Placa, cliente, quilometragem e relato do problema registrados na chegada do carro.</p>
+          </li>
+          <li class="etapa">
+            <div class="etapa__trilho" aria-hidden="true"></div>
+            <span class="etapa__numero">02</span>
+            <h3 class="etapa__titulo">Orçamento</h3>
+            <p class="etapa__texto">Peças e mão de obra somadas em um orçamento claro para o cliente aprovar.</p>
+          </li>
+          <li class="etapa">
+            <div class="etapa__trilho" aria-hidden="true"></div>
+            <span class="etapa__numero">03</span>
+            <h3 class="etapa__titulo">Execução</h3>
+            <p class="etapa__texto">O serviço anda no box e as peças usadas saem do estoque automaticamente.</p>
+          </li>
+          <li class="etapa">
+            <div class="etapa__trilho" aria-hidden="true"></div>
+            <span class="etapa__numero">04</span>
+            <h3 class="etapa__titulo">Entrega</h3>
+            <p class="etapa__texto">Pagamento lançado no caixa e serviço salvo no histórico do veículo.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+    <!-- DEMONSTRAÇÃO EM VÍDEO -->
+<section class="secao video-demo" id="video">
+  <div class="container">
+
+    <div class="secao__cabecalho">
+      <div>
+        <span class="rotulo">Demonstração</span>
+        <h2 class="secao__titulo">Veja o Eixo<br>em ação.</h2>
+      </div>
+
+      <p class="secao__descricao">
+        Veja como o sistema organiza a rotina da oficina,
+        do cadastro do veículo até o fechamento da ordem de serviço.
+      </p>
+    </div>
+
+    <div class="video-demo__container">
+
+        <iframe
+          src="videoExemplo.mp4"
+          title="Demonstração do Eixo"
+          allowfullscreen>
+        </iframe>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+    <!-- CONTATO -->
+    <section class="secao" id="contato">
+      <div class="container">
+        <div class="cta">
+          <div class="cta__conteudo">
+            <h2 class="secao__titulo cta__titulo">Menos papel no balcão.<br>Mais carro pronto no pátio.</h2>
+            <p class="secao__descricao">Agende uma demonstração e veja o Eixo funcionando com a rotina da sua oficina.</p>
+            <div class="cta__acoes">
+              <!-- Troque SEUNUMERO pelo número com DDD, só dígitos. Ex.: https://wa.me/5547999999999 -->
+              <a class="btn btn--primario" href="https://wa.me/55SEUNUMERO" target="_blank" rel="noopener">
+                <svg class="icone" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+                Chamar no WhatsApp
+              </a>
+              <dl class="cta__contatos">
+                <div><dt class="rotulo">WhatsApp</dt><dd>WhatsApp</dd></div>
+                <div><dt class="rotulo">E-mail</dt><dd><a href="mailto:[SEU E-MAIL]">Email</a></dd></div>
+              </dl>
+            </div>
+          </div>
+          <div class="cta__quadriculado" aria-hidden="true"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="rodape">
+    <div class="container rodape__conteudo">
+      <img src="eixo-logo-branco.png" alt="Eixo" width="120" height="40">
+      <span class="rodape__copy">EIXO © 2026 — Sistema de Gestão de Oficinas</span>
+      <nav class="rodape__nav" aria-label="Rodapé">
+        <a class="link-nav" href="#modulos">Módulos</a>
+        <a class="link-nav" href="#como-funciona">Como funciona</a>
+        <a class="link-nav" href="#contato">Contato</a>
+        <a class="link-nav" href="#">Entrar</a>
+      </nav>
+    </div>
+  </footer>
+
+</body>
+</html>

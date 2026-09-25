@@ -11,7 +11,7 @@
 
   /* Textos */
   --color-text: #f0f0f0;
-  --color-text-secondary: #888888;
+  --color-text-secondary: rgb(170, 170, 170);
   --color-text-muted: #555555;
   --color-text-disabled: #333333;
 
@@ -89,6 +89,29 @@ textarea:focus {
   border-color: rgba(204, 0, 0, 0.65);
 }
 
+/*
+ * O autofill do Chrome/Edge força fundo claro e cor de texto com !important,
+ * então não dá para sobrescrever o background. Adiar a transição indefinidamente
+ * mantém o fundo que cada página definiu (inclusive transparent nas buscas).
+ * O !important na transição vence os seletores de página que também declaram transition.
+ */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--color-text);
+  caret-color: var(--color-text);
+  transition: background-color 600000s 0s, color 600000s 0s, border-color 0.2s ease !important;
+}
+
+/* Firefox aplica um filtro amarelado em vez de trocar o background. */
+input:autofill,
+textarea:autofill,
+select:autofill {
+  filter: none;
+}
+
 input::placeholder,
 textarea::placeholder {
   color: var(--color-text-muted);
@@ -97,9 +120,9 @@ textarea::placeholder {
 label {
   display: block;
   margin-bottom: 6px;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }

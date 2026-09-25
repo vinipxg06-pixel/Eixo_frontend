@@ -38,15 +38,6 @@
   overflow-y: auto;
 }
 
-.sidebar-section-label {
-  padding: 0 10px 8px;
-  color: #353535;
-  font-family: var(--font-mono);
-  font-size: 8px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
 .sidebar-link {
   min-height: 40px;
   display: flex;
@@ -94,40 +85,17 @@
   border-top: 1px solid var(--color-border-soft);
 }
 
-.sidebar-user {
-  padding: 13px 14px 9px;
-}
-
-.sidebar-user-name {
-  max-width: 170px;
-  overflow: hidden;
-  color: #dfdfdf;
-  font-size: 11px;
-  font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.sidebar-user-role {
-  margin-top: 3px;
-  color: var(--color-text-muted);
-  font-family: var(--font-mono);
-  font-size: 8px;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-}
-
 .sidebar-logout {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 10px 14px 13px;
+  gap: 11px;
+  padding: 14px 16px;
   background: transparent;
   border: 0;
-  color: #555;
+  color: #686868;
   cursor: pointer;
-  font-size: 10px;
+  font-size: 12px;
   text-align: left;
   transition: color 0.15s ease;
 }
@@ -137,8 +105,8 @@
 }
 
 .sidebar-logout svg {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.7;
@@ -196,17 +164,10 @@
 .app-header-date {
   color: #444;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 12px;
   white-space: nowrap;
 }
 
-.app-header-status {
-  width: 7px;
-  height: 7px;
-  background: var(--color-primary);
-  border-radius: 50%;
-  box-shadow: 0 0 0 4px rgba(204, 0, 0, 0.08);
-}
 
 .menu-toggle {
   display: none;

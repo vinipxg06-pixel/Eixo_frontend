@@ -30,9 +30,6 @@ function renderMenu(activePage) {
     </a>
   `).join('');
 
-  const userName = Session.getUsuarioNome() || 'Usuário';
-  const userRole = Session.getUsuarioPerfil() || 'Oficina';
-
   target.innerHTML = `
     <aside class="sidebar">
       <div class="sidebar-logo">
@@ -40,15 +37,10 @@ function renderMenu(activePage) {
       </div>
 
       <nav class="sidebar-nav" aria-label="Menu principal">
-        <div class="sidebar-section-label">Gestão da oficina</div>
         ${links}
       </nav>
 
       <div class="sidebar-footer">
-        <div class="sidebar-user">
-          <div class="sidebar-user-name">${escapeHtml(userName)}</div>
-          <div class="sidebar-user-role">${escapeHtml(userRole)}</div>
-        </div>
         <button class="sidebar-logout" type="button" data-logout>
           ${MENU_ICONS.logout}
           <span>Sair do sistema</span>
@@ -69,13 +61,4 @@ function logout() {
 
 function closeMenu() {
   document.body.classList.remove('menu-open');
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
 }
