@@ -198,11 +198,13 @@ function handleTableClick(event) {
   }
 }
 
-function preencherClientes() {
+function preencherClientes(apenasAtivos = false) {
   const atual = elements.clienteId.value;
   elements.clienteId.innerHTML = '<option value="">Selecione</option>';
 
-  state.clientes.forEach((cliente) => {
+  const clientesParaListar = apenasAtivos ? clientesAtivos() : state.clientes;
+
+  clientesParaListar.forEach((cliente) => {
     const option = document.createElement('option');
     option.value = cliente.clienteId;
     option.textContent = cliente.nomeCliente;
@@ -210,6 +212,15 @@ function preencherClientes() {
   });
 
   elements.clienteId.value = atual;
+}
+
+// Só filtra quando a API realmente informar o campo "ativo"; se o campo
+// não vier (ainda não implementado no backend), mantém o comportamento atual
+// em vez de esconder todos os clientes por engano.
+function clientesAtivos() {
+  const algumClienteTemCampoAtivo = state.clientes.some((cliente) => cliente.ativo !== undefined);
+  if (!algumClienteTemCampoAtivo) return state.clientes;
+  return state.clientes.filter((cliente) => cliente.ativo !== false);
 }
 
 function preencherMarcas() {
@@ -274,6 +285,7 @@ function abrirModalNovoVeiculo() {
   elements.form.reset();
   clearFieldErrors();
   preencherModelos([]);
+  preencherClientes(true); // só clientes ativos podem receber um veículo novo
 
   elements.modalTitle.textContent = 'Novo veículo';
   elements.btnSalvar.textContent = 'Adicionar';
@@ -387,6 +399,9 @@ async function recarregarVeiculos() {
   }
 }
 
+const QUILOMETRAGEM_MAXIMA = 9999999; // 9.999.999 km
+const ANOS_LIMITE_FUTURO = 3; // não permite cadastrar veículo com ano > ano atual + 3
+
 function validateForm(payload, clienteId, modeloId, editando) {
   clearFieldErrors();
   let valid = true;
@@ -395,10 +410,30 @@ function validateForm(payload, clienteId, modeloId, editando) {
   if (!editando && !clienteId) { setFieldError('clienteId', 'Selecione o proprietário.'); valid = false; }
   if (!elements.marcaId.value) { setFieldError('marcaId', 'Selecione a marca.'); valid = false; }
   if (!modeloId) { setFieldError('modeloId', 'Selecione o modelo.'); valid = false; }
-  if (!/^\d{4}$/.test(payload.ano)) { setFieldError('ano', 'Informe o ano com 4 dígitos.'); valid = false; }
+
+  const anoAtual = new Date().getFullYear();
+  const anoMaximoPermitido = anoAtual + ANOS_LIMITE_FUTURO;
+  if (!/^\d{4}$/.test(payload.ano)) {
+    setFieldError('ano', 'Informe o ano com 4 dígitos.');
+    valid = false;
+  } else if (Number(payload.ano) < 1900) {
+    setFieldError('ano', 'Informe um ano válido.');
+    valid = false;
+  } else if (Number(payload.ano) > anoMaximoPermitido) {
+    setFieldError('ano', `O ano não pode ser maior que ${anoMaximoPermitido}.`);
+    valid = false;
+  }
+
   if (!payload.cor) { setFieldError('cor', 'Selecione a cor.'); valid = false; }
   if (!payload.combustivel) { setFieldError('combustivel', 'Selecione o combustível.'); valid = false; }
-  if (!Number.isFinite(payload.quilometragem) || payload.quilometragem < 0) { setFieldError('quilometragem', 'Informe uma quilometragem válida.'); valid = false; }
+
+  if (!Number.isFinite(payload.quilometragem) || payload.quilometragem < 0) {
+    setFieldError('quilometragem', 'Informe uma quilometragem válida.');
+    valid = false;
+  } else if (payload.quilometragem > QUILOMETRAGEM_MAXIMA) {
+    setFieldError('quilometragem', `A quilometragem máxima permitida é ${QUILOMETRAGEM_MAXIMA.toLocaleString('pt-BR')} km.`);
+    valid = false;
+  }
 
   if (!valid) showToast('Revise os campos obrigatórios.', 'warning');
   return valid;
@@ -518,11 +553,32 @@ async function excluirVeiculo() {
     await recarregarVeiculos();
   } catch (error) {
     console.error(error);
-    showToast(getApiErrorMessage(error, 'Não foi possível excluir o veículo.'), 'error');
+    showToast(getDeleteErrorMessage(error), 'error');
   } finally {
     state.excluindo = false;
     restaurarDeleteButtons();
   }
+}
+
+// Traduz erros técnicos (ex.: violação de FK do banco) em uma mensagem
+// única e compreensível para o usuário, em vez do dump de SQL do backend.
+function getDeleteErrorMessage(error) {
+  const raw = String(
+    error?.body?.message || error?.body?.mensagem || error?.message || ''
+  ).toLowerCase();
+
+  const pareceViolacaoDeIntegridade =
+    error?.status === 409 ||
+    raw.includes('foreign key') ||
+    raw.includes('constraint') ||
+    raw.includes('integrity') ||
+    raw.includes('fk_');
+
+  if (pareceViolacaoDeIntegridade) {
+    return 'Não é possível excluir este veículo pois existem orçamentos vinculados a ele. Cancele ou finalize os orçamentos antes de excluir.';
+  }
+
+  return getApiErrorMessage(error, 'Não foi possível excluir o veículo.');
 }
 
 function restaurarDeleteButtons() {
@@ -540,7 +596,12 @@ function handleEscape(event) {
 
 function aplicarMascaraPlaca(event) { event.target.value = formatPlate(event.target.value); }
 function aplicarMascaraAno(event) { event.target.value = Formatters.onlyDigits(event.target.value).slice(0, 4); }
-function aplicarMascaraQuilometragem(event) { event.target.value = formatInteger(Formatters.onlyDigits(event.target.value)); }
+function aplicarMascaraQuilometragem(event) {
+  // Limita a 7 dígitos (máximo 9.999.999 km) para não estourar o tipo Long no backend
+  // nem exibir aquele erro genérico de "JSON parse error".
+  const digits = Formatters.onlyDigits(event.target.value).slice(0, 7);
+  event.target.value = formatInteger(digits);
+}
 
 function rawPlate(value) {
   return String(value || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);

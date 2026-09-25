@@ -7,10 +7,12 @@ const state = {
   clientes: [],
   filtro: '',
   clienteEmEdicao: null,
-  salvando: false
+  salvando: false,
+  filtroStatus: 'Todos'
 };
 
 const elements = {
+  btnFiltro: document.getElementById('btnFiltroClientes'),
   btnNovo: document.getElementById('btnNovoCliente'),
   busca: document.getElementById('buscaCliente'),
   count: document.getElementById('clientesCount'),
@@ -44,7 +46,7 @@ function initClientes() {
     elements.btnNovo.disabled = true;
     return;
   }
-
+  elements.btnFiltro.addEventListener('click', alternarFiltroStatus);
   elements.btnNovo.addEventListener('click', abrirModalNovoCliente);
   elements.busca.addEventListener('input', handleBusca);
   elements.btnFecharModal.addEventListener('click', fecharModalCliente);
@@ -78,7 +80,19 @@ async function carregarClientes() {
 
 function renderClientes() {
   const termo = normalizeSearch(state.filtro);
+
   const clientesFiltrados = state.clientes.filter((cliente) => {
+    const statusCliente = normalizeStatusValue(cliente.status);
+
+    // Filtro por status
+    if (
+      state.filtroStatus !== 'Todos' &&
+      statusCliente !== state.filtroStatus
+    ) {
+      return false;
+    }
+
+    // Filtro por busca
     if (!termo) return true;
 
     return [
@@ -146,6 +160,20 @@ function aplicarMascaraCpfCnpj(event) {
 
 function aplicarMascaraTelefone(event) {
   event.target.value = Formatters.formatPhone(event.target.value);
+}
+
+function alternarFiltroStatus() {
+  if (state.filtroStatus === 'Todos') {
+    state.filtroStatus = 'Ativo';
+  } else if (state.filtroStatus === 'Ativo') {
+    state.filtroStatus = 'Inativo';
+  } else {
+    state.filtroStatus = 'Todos';
+  }
+
+  elements.btnFiltro.textContent = state.filtroStatus;
+
+  renderClientes();
 }
 
 function handleBusca(event) {
@@ -291,9 +319,21 @@ function validateForm(data) {
     setFieldError('nomeCliente', 'Informe o nome do cliente.');
     valid = false;
   }
-
+  if (!data.nomeCliente) {
+  setFieldError('nomeCliente', 'Informe o nome do cliente.');
+  valid = false;
+} else if (/^\d/.test(data.nomeCliente.trim())) {
+  setFieldError('nomeCliente', 'O nome não pode começar com um número.');
+  valid = false;
+}
   if (!data.telefone) {
     setFieldError('telefone', 'Informe o telefone.');
+    valid = false;
+  } else if (data.telefone.length !== 10 && data.telefone.length !== 11) {
+    setFieldError(
+      'telefone',
+      'Informe um telefone fixo com 10 dígitos ou celular com 11 dígitos.'
+    );
     valid = false;
   }
 
