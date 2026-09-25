@@ -16,49 +16,147 @@
     <div class="app-content">
       <header data-header></header>
 
-      <main class="app-main">
-        <div class="page-heading">
+      <main class="app-main dashboard-page">
+        <section class="dashboard-topbar">
           <div>
             <h1 class="page-title">Dashboard</h1>
-            <p class="page-subtitle">Visão geral da oficina e dos principais indicadores.</p>
+            <p class="page-subtitle" id="dashboardSubtitle">Visão geral da oficina</p>
           </div>
-        </div>
 
-        <section class="dashboard-preview-grid">
-          <article class="card dashboard-preview-card">
-            <span class="dashboard-preview-label">Ordens em aberto</span>
-            <strong>—</strong>
-            <small>Será conectado ao backend</small>
+          <div class="dashboard-period" aria-label="Filtro de período">
+            <button type="button" data-period="7">7 dias</button>
+            <button type="button" data-period="30" class="active">30 dias</button>
+            <button type="button" data-period="90">90 dias</button>
+            <button type="button" data-period="365">12 meses</button>
+            <button type="button" data-period="all">Tudo</button>
+          </div>
+        </section>
+
+        <section class="dashboard-alerts" id="dashboardAlerts"></section>
+
+        <section class="dashboard-kpis">
+          <article class="dashboard-kpi">
+            <div class="dashboard-kpi-head">
+              <span>Entradas do período</span>
+              <span class="dashboard-kpi-icon">R$</span>
+            </div>
+            <strong id="kpiReceita">R$ 0,00</strong>
+            <div class="dashboard-kpi-foot" id="kpiReceitaFoot">—</div>
+            <i class="dashboard-kpi-line positive"></i>
           </article>
 
-          <article class="card dashboard-preview-card">
-            <span class="dashboard-preview-label">Clientes ativos</span>
-            <strong>—</strong>
-            <small>Será conectado ao backend</small>
+          <article class="dashboard-kpi">
+            <div class="dashboard-kpi-head">
+              <span>Ordens em aberto</span>
+              <span class="dashboard-kpi-icon">OS</span>
+            </div>
+            <strong id="kpiOrdensAbertas">0</strong>
+            <div class="dashboard-kpi-foot" id="kpiOrdensFoot">—</div>
+            <i class="dashboard-kpi-line danger"></i>
           </article>
 
-          <article class="card dashboard-preview-card">
-            <span class="dashboard-preview-label">Estoque baixo</span>
-            <strong>—</strong>
-            <small>Será conectado ao backend</small>
+          <article class="dashboard-kpi">
+            <div class="dashboard-kpi-head">
+              <span>Clientes ativos</span>
+              <span class="dashboard-kpi-icon">CL</span>
+            </div>
+            <strong id="kpiClientes">0</strong>
+            <div class="dashboard-kpi-foot">cadastros ativos atualmente</div>
+            <i class="dashboard-kpi-line positive"></i>
           </article>
 
-          <article class="card dashboard-preview-card">
-            <span class="dashboard-preview-label">Saldo do caixa</span>
-            <strong>—</strong>
-            <small>Será conectado ao backend</small>
+          <article class="dashboard-kpi">
+            <div class="dashboard-kpi-head">
+              <span>Estoque baixo</span>
+              <span class="dashboard-kpi-icon">ET</span>
+            </div>
+            <strong id="kpiEstoque">0</strong>
+            <div class="dashboard-kpi-foot" id="kpiEstoqueFoot">itens abaixo do mínimo</div>
+            <i class="dashboard-kpi-line warning"></i>
           </article>
         </section>
 
-        <section class="empty-state dashboard-next-step">
-          <strong>Estrutura interna pronta</strong>
-          <span>Menu, cabeçalho e área de conteúdo agora são reutilizados por todas as funcionalidades.</span>
+        <section class="dashboard-grid dashboard-grid-top">
+          <article class="dashboard-panel dashboard-panel-wide">
+            <header class="dashboard-panel-head">
+              <div>
+                <h2>Fluxo Financeiro</h2>
+                <p id="financialChartSubtitle">Entradas e saídas do período</p>
+              </div>
+              <div class="dashboard-chart-legend">
+                <span><i class="legend-dot income"></i>Entradas</span>
+                <span><i class="legend-dot outcome"></i>Saídas</span>
+              </div>
+            </header>
+            <div class="dashboard-chart" id="financialChart"></div>
+          </article>
+
+          <article class="dashboard-panel">
+            <header class="dashboard-panel-head">
+              <div>
+                <h2>Categorias Financeiras</h2>
+                <p>Distribuição das movimentações</p>
+              </div>
+            </header>
+            <div class="dashboard-donut-wrap">
+              <div class="dashboard-donut" id="categoryDonut"></div>
+              <div class="dashboard-donut-center">
+                <strong id="categoryTotal">R$ 0</strong>
+                <span>movimentado</span>
+              </div>
+            </div>
+            <div class="dashboard-category-list" id="categoryLegend"></div>
+          </article>
+        </section>
+
+        <section class="dashboard-grid dashboard-grid-bottom">
+          <article class="dashboard-panel">
+            <header class="dashboard-panel-head">
+              <div>
+                <h2>Produção</h2>
+                <p>Aberturas vs fechamentos</p>
+              </div>
+            </header>
+            <div class="dashboard-chart dashboard-bar-chart" id="productionChart"></div>
+          </article>
+
+          <article class="dashboard-panel dashboard-panel-wide recent-panel">
+            <header class="dashboard-panel-head">
+              <div>
+                <h2>Ordens Recentes</h2>
+                <p>Últimas movimentações da oficina</p>
+              </div>
+            </header>
+            <div class="dashboard-table-wrap">
+              <table class="dashboard-table">
+                <thead>
+                  <tr>
+                    <th>OS</th>
+                    <th>Cliente</th>
+                    <th>Veículo</th>
+                    <th>Abertura</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="recentOrdersBody"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+
+        <section class="dashboard-loading hidden" id="dashboardLoading">
+          <span class="dashboard-spinner"></span>
+          <span>Carregando indicadores...</span>
         </section>
       </main>
     </div>
   </div>
 
+  <script src="../global/js/config.js"></script>
+  <script src="../global/js/api.js"></script>
   <script src="../global/js/session.js"></script>
+  <script src="../global/js/formatters.js"></script>
   <script src="../global/js/menu.js"></script>
   <script src="../global/js/layout.js"></script>
   <script src="../global/js/toast.js"></script>

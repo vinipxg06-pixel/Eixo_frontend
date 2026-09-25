@@ -78,7 +78,7 @@
 /* Distribuição das colunas inspirada no protótipo.
    A tabela ocupa sempre 100% da área útil, sem scrollbar horizontal. */
 .estoque-table th:nth-child(1), .estoque-table td:nth-child(1) { width: 7%; }
-.estoque-table th:nth-child(2), .estoque-table td:nth-child(2) { width: 18%; }
+.estoque-table th:nth-child(2), .estoque-table td:nth-child(2) { width: 15%; }
 .estoque-table th:nth-child(3), .estoque-table td:nth-child(3) { width: 11%; }
 .estoque-table th:nth-child(4), .estoque-table td:nth-child(4) { width: 8%; }
 .estoque-table th:nth-child(5), .estoque-table td:nth-child(5) { width: 9%; }
@@ -86,15 +86,15 @@
 .estoque-table th:nth-child(7), .estoque-table td:nth-child(7) { width: 12%; }
 .estoque-table th:nth-child(8), .estoque-table td:nth-child(8) { width: 12%; }
 .estoque-table th:nth-child(9), .estoque-table td:nth-child(9) { width: 8%; }
-.estoque-table th:nth-child(10), .estoque-table td:nth-child(10) { width: 7%; }
+.estoque-table th:nth-child(10), .estoque-table td:nth-child(10) { width: 10%; }
 
 .estoque-table th {
   height: 37px;
   padding: 0 14px;
   border-bottom: 1px solid var(--color-border);
-  color: #444;
+  color: var(--color-text-secondary);
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.12em;
   text-align: left;
@@ -308,7 +308,7 @@
   display: block;
   margin-top: 2px;
   color: #555;
-  font-size: 9px;
+  font-size: 12px;
 }
 
 /* Modais */
@@ -358,14 +358,13 @@
   width: 28px;
   height: 28px;
   flex: 0 0 auto;
-  border: 1px solid var(--color-border);
+  padding: 0;
   background: transparent;
-  color: #666;
+  border: 0;
+  color: #555;
   cursor: pointer;
-  font-size: 17px;
-  line-height: 1;
+  font-size: 20px;
 }
-.estoque-modal-close:hover { color: #ddd; background: #1a1a1a; }
 
 #pecaForm,
 #entradaForm,
@@ -389,14 +388,14 @@
   display: block;
   margin-top: 5px;
   color: #555;
-  font-size: 9px;
+  font-size: 12px;
 }
 .field-error {
   display: block;
   min-height: 12px;
   margin-top: 4px;
   color: var(--color-danger);
-  font-size: 9px;
+  font-size: 12px;
 }
 .estoque-modal-actions {
   display: flex;

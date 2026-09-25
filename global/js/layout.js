@@ -12,7 +12,6 @@ function renderHeader(sectionName) {
     </div>
 
     <div class="app-header-right">
-      <span class="app-header-status" title="Sistema ativo"></span>
       <span class="app-header-date">${formatCurrentDate()}</span>
     </div>
   `;

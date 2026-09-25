@@ -76,23 +76,23 @@
 }
 
 /* A tabela acompanha a largura disponível, como no protótipo. */
-.veiculos-table th:nth-child(1), .veiculos-table td:nth-child(1) { width: 13%; }
-.veiculos-table th:nth-child(2), .veiculos-table td:nth-child(2) { width: 13%; }
+.veiculos-table th:nth-child(1), .veiculos-table td:nth-child(1) { width: 12%; }
+.veiculos-table th:nth-child(2), .veiculos-table td:nth-child(2) { width: 12%; }
 .veiculos-table th:nth-child(3), .veiculos-table td:nth-child(3) { width: 10%; }
 .veiculos-table th:nth-child(4), .veiculos-table td:nth-child(4) { width: 7%; }
 .veiculos-table th:nth-child(5), .veiculos-table td:nth-child(5) { width: 9%; }
-.veiculos-table th:nth-child(6), .veiculos-table td:nth-child(6) { width: 13%; }
+.veiculos-table th:nth-child(6), .veiculos-table td:nth-child(6) { width: 12%; }
 .veiculos-table th:nth-child(7), .veiculos-table td:nth-child(7) { width: 13%; }
 .veiculos-table th:nth-child(8), .veiculos-table td:nth-child(8) { width: 15%; }
-.veiculos-table th:nth-child(9), .veiculos-table td:nth-child(9) { width: 7%; }
+.veiculos-table th:nth-child(9), .veiculos-table td:nth-child(9) { width: 10%; }
 
 .veiculos-table th {
   height: 37px;
   padding: 0 15px;
   border-bottom: 1px solid var(--color-border);
-  color: #444;
+  color: var(--color-text-secondary);
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.12em;
   text-align: left;
@@ -302,7 +302,7 @@
   display: block;
   min-height: 13px;
   margin-top: 4px;
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .field-error { color: var(--color-danger); }
