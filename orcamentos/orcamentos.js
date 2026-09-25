@@ -15,7 +15,8 @@ const state = {
   veiculosDoCliente: [],
   salvando: false,
   acaoPendente: null,
-  executandoAcao: false
+  executandoAcao: false,
+  orcamentoSelecionado: null
 };
 
 const elements = {
@@ -27,6 +28,7 @@ const elements = {
   tbody: document.getElementById('orcamentosTableBody'),
   empty: document.getElementById('orcamentosEmpty'),
   emptyText: document.getElementById('orcamentosEmptyText'),
+  actionMenu: document.getElementById('orcamentoActionMenu'),
 
   modal: document.getElementById('orcamentoModal'),
   modalTitle: document.getElementById('orcamentoModalTitle'),
@@ -74,6 +76,15 @@ function initOrcamentos() {
     renderOrcamentos();
   });
   elements.tbody.addEventListener('click', handleTableClick);
+  elements.actionMenu.addEventListener('click', handleActionMenuClick);
+
+  document.addEventListener('click', (event) => {
+    if (!elements.actionMenu.contains(event.target) && !event.target.closest('[data-action="menu"]')) {
+      fecharActionMenu();
+    }
+  });
+  window.addEventListener('resize', fecharActionMenu);
+  window.addEventListener('scroll', fecharActionMenu, true);
 
   elements.btnFecharModal.addEventListener('click', fecharModalOrcamento);
   elements.btnCancelar.addEventListener('click', fecharModalOrcamento);
@@ -163,9 +174,6 @@ function renderOrcamentos() {
   filtrados.forEach((orcamento) => {
     const cliente = getCliente(orcamento.clienteId);
     const veiculo = getVeiculo(orcamento.veiculoId);
-    const podeAprovar = orcamento.status !== 'Aprovado';
-    const podeRecusar = orcamento.status !== 'Recusado';
-
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="orcamento-numero">${escapeHtml(formatOrcamentoNumero(orcamento.orcamentoId))}</td>
@@ -176,17 +184,8 @@ function renderOrcamentos() {
       <td>${renderStatusBadge(orcamento.status)}</td>
       <td class="orcamentos-actions-col">
         <div class="orcamento-row-actions">
-          <button class="orcamento-icon-btn" type="button" data-action="editar" data-id="${orcamento.orcamentoId}" title="Editar orçamento" aria-label="Editar orçamento">
+          <button class="orcamento-icon-btn" type="button" data-action="menu" data-id="${orcamento.orcamentoId}" title="Ações do orçamento" aria-label="Ações do orçamento ${escapeHtml(formatOrcamentoNumero(orcamento.orcamentoId))}">
             ${iconEdit()}
-          </button>
-          <button class="orcamento-icon-btn approve" type="button" data-action="aprovar" data-id="${orcamento.orcamentoId}" title="Aprovar orçamento" aria-label="Aprovar orçamento" ${podeAprovar ? '' : 'disabled'}>
-            ${iconCheck()}
-          </button>
-          <button class="orcamento-icon-btn reject" type="button" data-action="recusar" data-id="${orcamento.orcamentoId}" title="Recusar orçamento" aria-label="Recusar orçamento" ${podeRecusar ? '' : 'disabled'}>
-            ${iconX()}
-          </button>
-          <button class="orcamento-icon-btn delete" type="button" data-action="excluir" data-id="${orcamento.orcamentoId}" title="Excluir orçamento" aria-label="Excluir orçamento">
-            ${iconTrash()}
           </button>
         </div>
       </td>
@@ -198,26 +197,173 @@ function renderOrcamentos() {
 }
 
 function handleTableClick(event) {
-  const button = event.target.closest('[data-action]');
-  if (!button || button.disabled) return;
+  const button = event.target.closest('[data-action="menu"]');
+  if (!button) return;
 
   const orcamento = state.orcamentos.find((item) => String(item.orcamentoId) === String(button.dataset.id));
   if (!orcamento) return;
 
-  switch (button.dataset.action) {
-    case 'editar':
-      abrirModalEditar(orcamento);
-      break;
-    case 'aprovar':
-      abrirAcaoModal('aprovar', orcamento);
-      break;
-    case 'recusar':
-      abrirAcaoModal('recusar', orcamento);
-      break;
-    case 'excluir':
-      abrirAcaoModal('excluir', orcamento);
-      break;
+  abrirActionMenu(button, orcamento);
+}
+
+function abrirActionMenu(anchor, orcamento) {
+  state.orcamentoSelecionado = orcamento;
+  const pendente = orcamento.status === 'Pendente';
+
+  elements.actionMenu.querySelectorAll('[data-budget-action]').forEach((button) => {
+    const action = button.dataset.budgetAction;
+    const exigePendente = ['editar', 'aprovar', 'recusar'].includes(action);
+    button.classList.toggle('hidden', exigePendente && !pendente);
+  });
+
+  const visibleCount = pendente ? 5 : 2;
+  const menuWidth = 238;
+  const menuHeight = visibleCount * 52 + 10;
+  const rect = anchor.getBoundingClientRect();
+  let left = rect.right - menuWidth;
+  let top = rect.bottom + 6;
+  if (left < 8) left = 8;
+  if (top + menuHeight > window.innerHeight - 8) top = rect.top - menuHeight - 6;
+
+  elements.actionMenu.style.left = `${left}px`;
+  elements.actionMenu.style.top = `${Math.max(8, top)}px`;
+  elements.actionMenu.classList.remove('hidden');
+  elements.actionMenu.setAttribute('aria-hidden', 'false');
+}
+
+function fecharActionMenu() {
+  elements.actionMenu.classList.add('hidden');
+  elements.actionMenu.setAttribute('aria-hidden', 'true');
+}
+
+function handleActionMenuClick(event) {
+  const button = event.target.closest('[data-budget-action]');
+  if (!button || !state.orcamentoSelecionado) return;
+
+  const orcamento = state.orcamentoSelecionado;
+  const action = button.dataset.budgetAction;
+  fecharActionMenu();
+
+  if (['editar', 'aprovar', 'recusar'].includes(action) && orcamento.status !== 'Pendente') {
+    showToast('Somente orçamentos pendentes podem ser editados ou ter o status alterado.', 'warning');
+    return;
   }
+
+  if (action === 'editar') abrirModalEditar(orcamento);
+  else if (action === 'txt') baixarOrcamentoTxt(orcamento);
+  else if (action === 'aprovar') abrirAcaoModal('aprovar', orcamento);
+  else if (action === 'recusar') abrirAcaoModal('recusar', orcamento);
+  else if (action === 'excluir') abrirAcaoModal('excluir', orcamento);
+}
+
+async function baixarOrcamentoTxt(orcamento) {
+  if (!orcamento?.orcamentoId) return;
+
+  const numero = formatOrcamentoNumero(orcamento.orcamentoId);
+
+  try {
+    const pecas = await apiRequest(`/oficinas/${oficinaId}/orcamentos/${orcamento.orcamentoId}/pecas`);
+    const listaPecas = Array.isArray(pecas) ? pecas : [];
+    const cliente = getCliente(orcamento.clienteId);
+    const veiculo = getVeiculo(orcamento.veiculoId);
+
+    const totalPecas = listaPecas.reduce((total, item) => total + Number(item.subtotal ?? 0), 0);
+    const maoDeObra = Number(orcamento.maoDeObra ?? 0);
+    const totalCalculado = totalPecas + maoDeObra;
+    const totalOrcamento = Number(orcamento.valorTotal ?? totalCalculado);
+
+    const linhas = [
+      'EIXO - SISTEMA DE GERENCIAMENTO DE OFICINA',
+      '',
+      `ORÇAMENTO ${numero}`,
+      `Data: ${formatDateTime(orcamento.createdAt)}`,
+      `Status: ${orcamento.status || 'Pendente'}`,
+      '',
+      'CLIENTE',
+      `Nome: ${cliente?.nomeCliente || `Cliente #${orcamento.clienteId}`}`,
+    ];
+
+    if (cliente?.telefone) linhas.push(`Telefone: ${Formatters.formatPhone(cliente.telefone)}`);
+    if (cliente?.cpfcnpj) linhas.push(`CPF/CNPJ: ${Formatters.formatCpfCnpj(cliente.cpfcnpj)}`);
+    if (cliente?.email) linhas.push(`E-mail: ${cliente.email}`);
+
+    linhas.push('', 'VEÍCULO');
+    if (veiculo) {
+      const marca = veiculo.modelo?.marca?.nomeMarca || '';
+      const modelo = veiculo.modelo?.nomeModelo || '';
+      const nomeVeiculo = [marca, modelo].filter(Boolean).join(' ') || `Veículo #${orcamento.veiculoId}`;
+      linhas.push(`Veículo: ${nomeVeiculo}`);
+      if (veiculo.placa) linhas.push(`Placa: ${formatPlate(veiculo.placa)}`);
+      if (veiculo.ano) linhas.push(`Ano: ${veiculo.ano}`);
+      if (veiculo.cor) linhas.push(`Cor: ${veiculo.cor}`);
+      if (veiculo.combustivel) linhas.push(`Combustível: ${veiculo.combustivel}`);
+      if (veiculo.quilometragem != null) linhas.push(`Quilometragem: ${Number(veiculo.quilometragem).toLocaleString('pt-BR')} km`);
+    } else {
+      linhas.push(`Veículo: #${orcamento.veiculoId}`);
+    }
+
+    linhas.push(
+      '',
+      'DESCRIÇÃO',
+      orcamento.descricao || '—',
+      '',
+      'PEÇAS',
+      '------------------------------------------------------------'
+    );
+
+    if (listaPecas.length === 0) {
+      linhas.push('Nenhuma peça vinculada.');
+    } else {
+      listaPecas.forEach((item, index) => {
+        linhas.push(`${index + 1}. ${item.nomePeca || `Peça #${item.estoqueId}`}`);
+        linhas.push(`   Quantidade: ${formatQuantidadeTxt(item.quantidade)}`);
+        linhas.push(`   Valor unitário: ${Formatters.formatCurrencyBRL(item.valor ?? 0)}`);
+        linhas.push(`   Subtotal: ${Formatters.formatCurrencyBRL(item.subtotal ?? 0)}`);
+      });
+    }
+
+    linhas.push(
+      '------------------------------------------------------------',
+      `Peças: ${Formatters.formatCurrencyBRL(totalPecas)}`,
+      `Mão de obra: ${Formatters.formatCurrencyBRL(maoDeObra)}`,
+      `TOTAL: ${Formatters.formatCurrencyBRL(totalOrcamento)}`,
+      '',
+      `Status: ${orcamento.status || 'Pendente'}`
+    );
+
+    const conteudo = `\uFEFF${linhas.join('\r\n')}\r\n`;
+    const blob = new Blob([conteudo], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `orcamento-${sanitizarNomeArquivo(numero)}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+
+    showToast(`Arquivo ${numero}.txt gerado com sucesso.`, 'success');
+  } catch (error) {
+    showToast(getApiErrorMessage(error, 'Não foi possível gerar o arquivo TXT do orçamento.'), 'error');
+  }
+}
+
+function formatQuantidadeTxt(value) {
+  const numero = Number(value ?? 0);
+  if (!Number.isFinite(numero)) return String(value ?? '0');
+  return numero.toLocaleString('pt-BR', {
+    minimumFractionDigits: Number.isInteger(numero) ? 0 : 2,
+    maximumFractionDigits: 2
+  });
+}
+
+function sanitizarNomeArquivo(value) {
+  return String(value || 'orcamento')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9_-]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
 }
 
 function preencherClientes() {
@@ -298,6 +444,11 @@ function abrirModalNovo() {
 }
 
 async function abrirModalEditar(orcamento) {
+  if (orcamento.status !== 'Pendente') {
+    showToast('Orçamentos aprovados ou recusados não podem ser editados.', 'warning');
+    return;
+  }
+
   state.orcamentoEmEdicao = orcamento;
   state.pecasOriginais = [];
   state.pecasEditor = [];
@@ -607,6 +758,11 @@ async function recarregarDados() {
 }
 
 function abrirAcaoModal(tipo, orcamento) {
+  if (['aprovar', 'recusar'].includes(tipo) && orcamento.status !== 'Pendente') {
+    showToast('Somente orçamentos pendentes podem ter o status alterado.', 'warning');
+    return;
+  }
+
   state.acaoPendente = { tipo, orcamento };
   const numero = formatOrcamentoNumero(orcamento.orcamentoId);
 
@@ -661,6 +817,10 @@ async function executarAcaoPendente() {
   elements.btnConfirmarAcao.textContent = 'AGUARDE...';
 
   try {
+    if (['aprovar', 'recusar'].includes(tipo) && orcamento.status !== 'Pendente') {
+      throw new Error('Somente orçamentos pendentes podem ter o status alterado.');
+    }
+
     if (tipo === 'aprovar') {
       await apiRequest(`/oficinas/${oficinaId}/orcamentos/${orcamento.orcamentoId}/aprovar`, { method: 'POST' });
       showToast('Orçamento aprovado com sucesso.', 'success');
@@ -772,7 +932,8 @@ function setListLoading(loading) {
 
 function handleEscape(event) {
   if (event.key !== 'Escape') return;
-  if (!elements.acaoModal.classList.contains('hidden')) fecharAcaoModal();
+  if (!elements.actionMenu.classList.contains('hidden')) fecharActionMenu();
+  else if (!elements.acaoModal.classList.contains('hidden')) fecharAcaoModal();
   else if (!elements.modal.classList.contains('hidden')) fecharModalOrcamento();
 }
 

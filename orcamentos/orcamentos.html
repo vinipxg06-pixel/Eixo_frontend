@@ -24,11 +24,14 @@
           </div>
 
           <div class="orcamentos-actions">
-            <label class="orcamentos-search-wrap" aria-label="Buscar orçamento">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.2-3.2"></path></svg>
-              <input id="buscaOrcamento" type="search" placeholder="Buscar..." autocomplete="off">
-            </label>
-            <button class="btn-primary btn-novo-orcamento" id="btnNovoOrcamento" type="button">+ NOVO</button>
+            <div class="orcamentos-search-wrap">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="11" cy="11" r="7"></circle>
+                <path d="m20 20-3.8-3.8"></path>
+              </svg>
+              <input id="buscaOrcamento" type="search" placeholder="Buscar..." autocomplete="off" aria-label="Buscar orçamento">
+            </div>
+            <button class="btn btn-primary btn-novo-orcamento" type="button" id="btnNovoOrcamento">+ Novo</button>
           </div>
         </div>
 
@@ -62,6 +65,30 @@
         </section>
       </main>
     </div>
+  </div>
+
+  <!-- Menu contextual de ações do orçamento -->
+  <div class="orcamento-action-menu hidden" id="orcamentoActionMenu" role="menu" aria-hidden="true">
+    <button type="button" data-budget-action="editar" role="menuitem">
+      <span class="orcamento-action-menu-icon">✎</span>
+      <span><strong>Editar</strong><small>Alterar descrição, mão de obra e peças</small></span>
+    </button>
+    <button type="button" data-budget-action="txt" role="menuitem">
+      <span class="orcamento-action-menu-icon txt">TXT</span>
+      <span><strong>Baixar TXT</strong><small>Exportar os dados do orçamento</small></span>
+    </button>
+    <button type="button" data-budget-action="aprovar" role="menuitem">
+      <span class="orcamento-action-menu-icon approve">✓</span>
+      <span><strong>Aprovar</strong><small>Confirmar o orçamento</small></span>
+    </button>
+    <button type="button" data-budget-action="recusar" role="menuitem">
+      <span class="orcamento-action-menu-icon reject">×</span>
+      <span><strong>Recusar</strong><small>Marcar como recusado</small></span>
+    </button>
+    <button type="button" data-budget-action="excluir" role="menuitem">
+      <span class="orcamento-action-menu-icon delete">⌫</span>
+      <span><strong>Excluir</strong><small>Excluir permanentemente</small></span>
+    </button>
   </div>
 
   <!-- Modal criação / edição -->
@@ -106,7 +133,7 @@
               <small>O status é alterado pelos comandos Aprovar ou Recusar.</small>
             </div>
 
-            <div class="budget-field budget-field-full">
+            <div class="budget-field">
               <label for="descricao">Descrição *</label>
               <input id="descricao" maxlength="100" placeholder="Detalhes do orçamento..." autocomplete="off">
               <small class="field-error" data-error-for="descricao"></small>
@@ -134,8 +161,8 @@
         </div>
 
         <footer class="budget-modal-footer">
-          <button class="btn-secondary" id="btnCancelarOrcamento" type="button">CANCELAR</button>
-          <button class="btn-primary" id="btnSalvarOrcamento" type="submit">CRIAR</button>
+          <button class="btn btn-secondary" id="btnCancelarOrcamento" type="button">CANCELAR</button>
+          <button class="btn btn-primary" id="btnSalvarOrcamento" type="submit">CRIAR</button>
         </footer>
       </form>
     </section>
@@ -155,8 +182,8 @@
         <p id="acaoOrcamentoTexto"></p>
       </div>
       <footer class="budget-modal-footer">
-        <button class="btn-secondary" id="btnCancelarAcao" type="button">CANCELAR</button>
-        <button class="btn-primary" id="btnConfirmarAcao" type="button">CONFIRMAR</button>
+        <button class="btn btn-secondary" id="btnCancelarAcao" type="button">CANCELAR</button>
+        <button class="btn btn-primary" id="btnConfirmarAcao" type="button">CONFIRMAR</button>
       </footer>
     </section>
   </div>

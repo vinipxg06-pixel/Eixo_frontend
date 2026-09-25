@@ -16,26 +16,179 @@
     <div class="app-content">
       <header data-header></header>
 
-      <main class="app-main">
-        <div class="page-heading">
+      <main class="app-main os-page">
+        <div class="os-topbar">
           <div>
-            <h1 class="page-title">Ordens de Serviço</h1>
-            <p class="page-subtitle">Acompanhamento das ordens de serviço da oficina.</p>
+            <h1 class="page-title">ORDENS DE SERVIÇO</h1>
+            <p class="os-subtitle" id="osCount">0 cadastradas</p>
+          </div>
+
+          <div class="os-actions">
+            <div class="os-search-wrap">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="11" cy="11" r="7"></circle>
+                <path d="m20 20-3.8-3.8"></path>
+              </svg>
+              <input id="buscaOs" type="search" placeholder="Buscar..." autocomplete="off" aria-label="Buscar ordem de serviço">
+            </div>
+            <button class="btn btn-primary btn-nova-os" type="button" id="btnNovaOs">+ Nova</button>
           </div>
         </div>
 
-        <section class="empty-state">
-          <strong>Ordens de Serviço</strong>
-          <span>Estrutura global pronta. Esta funcionalidade será implementada em seguida.</span>
+        <section class="os-table-shell">
+          <div id="osLoading" class="os-loading">
+            <div class="loading-spinner"></div>
+            <span>Carregando ordens de serviço...</span>
+          </div>
+
+          <div id="osTableWrap" class="os-table-wrap hidden custom-scrollbar">
+            <table class="os-table">
+              <thead>
+                <tr>
+                  <th>Nº</th>
+                  <th>Cliente</th>
+                  <th>Veículo</th>
+                  <th>Abertura</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th class="os-actions-col">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="osTableBody"></tbody>
+            </table>
+          </div>
+
+          <div id="osEmpty" class="os-empty hidden">
+            <strong>Nenhuma ordem de serviço</strong>
+            <span id="osEmptyText">Crie a primeira ordem de serviço da oficina.</span>
+          </div>
         </section>
       </main>
     </div>
   </div>
 
+  <!-- Menu contextual -->
+  <div class="os-action-menu hidden" id="osActionMenu" role="menu" aria-hidden="true">
+    <button type="button" data-os-action="visualizar" role="menuitem">
+      <span class="os-action-menu-icon">⌕</span>
+      <span><strong>Visualizar</strong><small>Consultar os dados da OS</small></span>
+    </button>
+    <button type="button" data-os-action="editar" role="menuitem">
+      <span class="os-action-menu-icon">✎</span>
+      <span><strong>Editar</strong><small>Alterar serviço e peças</small></span>
+    </button>
+    <button type="button" data-os-action="fechar" role="menuitem">
+      <span class="os-action-menu-icon close-os">✓</span>
+      <span><strong>Fechar OS</strong><small>Finalizar a ordem de serviço</small></span>
+    </button>
+  </div>
+
+  <!-- Modal criação / edição / visualização -->
+  <div class="os-modal-backdrop hidden" id="osModal" aria-hidden="true">
+    <section class="os-modal os-modal-wide" role="dialog" aria-modal="true" aria-labelledby="osModalTitle">
+      <header class="os-modal-header">
+        <div>
+          <span class="os-modal-eyebrow">ORDEM DE SERVIÇO</span>
+          <h2 id="osModalTitle">Nova ordem de serviço</h2>
+        </div>
+        <button class="os-modal-close" id="btnFecharOsModal" type="button" aria-label="Fechar">×</button>
+      </header>
+
+      <form id="osForm">
+        <div class="os-modal-body custom-scrollbar">
+          <div class="os-grid">
+            <div class="os-field">
+              <label for="osClienteId">Cliente *</label>
+              <select id="osClienteId">
+                <option value="">Selecione</option>
+              </select>
+              <small class="field-error" data-error-for="osClienteId"></small>
+            </div>
+
+            <div class="os-field">
+              <label for="osVeiculoId">Veículo *</label>
+              <select id="osVeiculoId" disabled>
+                <option value="">Selecione um cliente</option>
+              </select>
+              <small class="field-error" data-error-for="osVeiculoId"></small>
+            </div>
+
+            <div class="os-field">
+              <label for="osMaoDeObra">Mão de obra</label>
+              <input id="osMaoDeObra" inputmode="numeric" placeholder="R$ 0,00" autocomplete="off">
+              <small class="field-error" data-error-for="osMaoDeObra"></small>
+            </div>
+
+            <div class="os-field os-status-field" id="osStatusField">
+              <label>Status</label>
+              <div id="osModalStatusBadge"></div>
+              <small id="osStatusHint">A OS é fechada pelo comando “Fechar OS”.</small>
+            </div>
+
+            <div class="os-field">
+              <label for="osDescricao">Descrição *</label>
+              <input id="osDescricao" maxlength="100" placeholder="Detalhes do serviço..." autocomplete="off">
+              <small class="field-error" data-error-for="osDescricao"></small>
+            </div>
+          </div>
+
+          <section class="os-parts-section">
+            <div class="os-parts-heading">
+              <div>
+                <span class="os-section-kicker">PEÇAS</span>
+                <p>Itens do estoque vinculados à ordem de serviço.</p>
+              </div>
+              <button id="btnAdicionarPecaOs" class="os-secondary-btn" type="button">+ ADICIONAR PEÇA</button>
+            </div>
+
+            <div id="osPecasAviso" class="os-parts-warning hidden"></div>
+            <div id="osPecasEditor" class="os-parts-list"></div>
+            <p id="osPecasEmptyHint" class="os-parts-empty">Nenhuma peça adicionada.</p>
+          </section>
+
+          <section class="os-summary">
+            <div><span>Peças</span><strong id="osResumoPecas">R$ 0,00</strong></div>
+            <div><span>Mão de obra</span><strong id="osResumoMaoDeObra">R$ 0,00</strong></div>
+            <div class="os-summary-total"><span>Total</span><strong id="osResumoTotal">R$ 0,00</strong></div>
+          </section>
+        </div>
+
+        <footer class="os-modal-footer">
+          <button class="btn btn-secondary" id="btnCancelarOs" type="button">CANCELAR</button>
+          <button class="btn btn-primary" id="btnSalvarOs" type="submit">CRIAR</button>
+        </footer>
+      </form>
+    </section>
+  </div>
+
+  <!-- Confirmação de fechamento -->
+  <div class="os-modal-backdrop hidden" id="fecharOsModal" aria-hidden="true">
+    <section class="os-modal os-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="fecharOsTitle">
+      <header class="os-modal-header">
+        <div>
+          <span class="os-modal-eyebrow">CONFIRMAÇÃO</span>
+          <h2 id="fecharOsTitle">Fechar ordem de serviço</h2>
+        </div>
+        <button class="os-modal-close" id="btnFecharConfirmModal" type="button" aria-label="Fechar">×</button>
+      </header>
+      <div class="os-confirm-body">
+        <p id="fecharOsTexto"></p>
+        <small>Depois de fechada, a OS ficará bloqueada para edição e alteração de peças.</small>
+      </div>
+      <footer class="os-modal-footer">
+        <button class="btn btn-secondary" id="btnCancelarFechamento" type="button">CANCELAR</button>
+        <button class="btn btn-primary" id="btnConfirmarFechamento" type="button">FECHAR OS</button>
+      </footer>
+    </section>
+  </div>
+
+  <script src="../global/js/config.js"></script>
+  <script src="../global/js/api.js"></script>
   <script src="../global/js/session.js"></script>
   <script src="../global/js/menu.js"></script>
   <script src="../global/js/layout.js"></script>
   <script src="../global/js/toast.js"></script>
+  <script src="../global/js/formatters.js"></script>
   <script src="./ordens-servico.js"></script>
 </body>
 </html>
