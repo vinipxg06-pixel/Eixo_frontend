@@ -8,7 +8,11 @@ function renderHeader(sectionName) {
       <button class="menu-toggle" type="button" aria-label="Abrir menu" data-menu-toggle>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
-      <span class="app-header-section">${escapeLayoutHtml(sectionName)}</span>
+      <div class="app-header-breadcrumb" aria-label="Localização atual">
+        <span class="app-header-brand">EIXO</span>
+        <span class="app-header-separator" aria-hidden="true">›</span>
+        <span class="app-header-section">${escapeLayoutHtml(sectionName)}</span>
+      </div>
     </div>
 
     <div class="app-header-right">

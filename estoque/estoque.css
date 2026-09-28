@@ -10,8 +10,7 @@
 .estoque-subtitle {
   margin-top: 4px;
   color: var(--color-text-muted);
-  font-size: 10px;
-}
+  font-size: 12px;}
 
 .estoque-actions {
   display: flex;
@@ -47,8 +46,7 @@
   background: transparent;
   border: 0;
   color: #aaa;
-  font-size: 11px;
-}
+  font-size: 12px;}
 
 .estoque-search-wrap input:focus { border: 0; }
 
@@ -94,8 +92,7 @@
   border-bottom: 1px solid var(--color-border);
   color: var(--color-text-secondary);
   font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 500;
+  font-size: 12px;  font-weight: 500;
   letter-spacing: 0.12em;
   text-align: left;
   text-transform: uppercase;
@@ -107,8 +104,7 @@
   padding: 0 14px;
   border-bottom: 1px solid rgba(255,255,255,.045);
   color: #888;
-  font-size: 10.5px;
-  vertical-align: middle;
+  font-size: 12px;  vertical-align: middle;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -120,7 +116,7 @@
 
 .estoque-codigo {
   max-width: 118px;
-  color: #555 !important;
+  color: #777 !important;
   font-family: var(--font-mono);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -140,8 +136,7 @@
   background: #202020;
   color: #888;
   font-family: var(--font-mono);
-  font-size: 8px;
-  letter-spacing: .05em;
+  font-size: 12px;  letter-spacing: .05em;
   text-transform: uppercase;
 }
 
@@ -151,8 +146,7 @@
   margin-bottom: 5px;
   color: #eee;
   font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 12px;  font-weight: 600;
 }
 .estoque-qtd-value.low { color: var(--color-warning); }
 
@@ -191,8 +185,7 @@
   padding: 0 7px;
   border: 1px solid;
   font-family: var(--font-mono);
-  font-size: 8px;
-  font-weight: 600;
+  font-size: 12px;  font-weight: 600;
   letter-spacing: .08em;
   text-transform: uppercase;
 }
@@ -222,7 +215,7 @@
   justify-content: center;
   border: 1px solid var(--color-border);
   background: transparent;
-  color: #666;
+  color: #888;
   cursor: pointer;
 }
 .stock-icon-btn:hover { background: #1e1e1e; color: #bbb; }
@@ -245,9 +238,8 @@
   justify-content: center;
   flex-direction: column;
   gap: 8px;
-  color: #555;
-  font-size: 11px;
-}
+  color: #777;
+  font-size: 12px;}
 .estoque-empty strong {
   color: #888;
   font-family: var(--font-display);
@@ -301,13 +293,12 @@
 }
 .estoque-action-menu strong {
   display: block;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 12px;  font-weight: 600;
 }
 .estoque-action-menu small {
   display: block;
   margin-top: 2px;
-  color: #555;
+  color: #777;
   font-size: 12px;
 }
 
@@ -351,20 +342,8 @@
 }
 .estoque-modal-header p {
   margin-top: 3px;
-  color: #555;
-  font-size: 10px;
-}
-.estoque-modal-close {
-  width: 28px;
-  height: 28px;
-  flex: 0 0 auto;
-  padding: 0;
-  background: transparent;
-  border: 0;
-  color: #555;
-  cursor: pointer;
-  font-size: 20px;
-}
+  color: #777;
+  font-size: 12px;}
 
 #pecaForm,
 #entradaForm,
@@ -381,13 +360,13 @@
 .form-field input[readonly],
 .form-field select:disabled {
   background: #0d0d0d;
-  color: #555;
+  color: #777;
   cursor: not-allowed;
 }
 .field-help {
   display: block;
   margin-top: 5px;
-  color: #555;
+  color: #777;
   font-size: 12px;
 }
 .field-error {
@@ -428,10 +407,9 @@
   background: #151515;
 }
 .movimento-resumo span {
-  color: #555;
+  color: #777;
   font-family: var(--font-mono);
-  font-size: 8px;
-  letter-spacing: .08em;
+  font-size: 12px;  letter-spacing: .08em;
   text-transform: uppercase;
 }
 .movimento-resumo strong {

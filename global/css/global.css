@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap');
 
 :root {
   /* Cores principais */
@@ -11,9 +11,9 @@
 
   /* Textos */
   --color-text: #f0f0f0;
-  --color-text-secondary: rgb(170, 170, 170);
-  --color-text-muted: #555555;
-  --color-text-disabled: #333333;
+  --color-text-secondary: #aaaaaa;
+  --color-text-muted: #777777;
+  --color-text-disabled: #555555;
 
   /* Bordas */
   --color-border: rgba(255, 255, 255, 0.08);
@@ -26,9 +26,9 @@
   --color-danger: #f87171;
 
   /* Fontes */
-  --font-body: 'Inter', sans-serif;
-  --font-display: 'Barlow Condensed', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-body: 'Rajdhani', Arial, sans-serif;
+  --font-display: 'Oswald', sans-serif;
+  --font-mono: 'Rajdhani', Arial, sans-serif;
 
   /* Layout */
   --sidebar-width: 228px;
@@ -52,6 +52,7 @@ body {
   color: var(--color-text);
   font-family: var(--font-body);
   font-size: 14px;
+  font-weight: 500;
 }
 
 button,
@@ -122,16 +123,15 @@ label {
   margin-bottom: 6px;
   color: var(--color-text-secondary);
   font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
+  font-size: 12px;  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .page-title {
   font-family: var(--font-display);
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: 2px;
   line-height: 1;
   text-transform: uppercase;
 }
@@ -139,7 +139,7 @@ label {
 .page-subtitle {
   margin-top: 4px;
   color: var(--color-text-muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .card {
@@ -163,9 +163,8 @@ label {
   background: var(--color-primary);
   color: #fff;
   font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-size: 12px;  font-weight: 600;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
 }
 

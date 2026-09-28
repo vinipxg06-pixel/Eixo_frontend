@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EIXO — Estoque</title>
+  <title>EIXO | Estoque</title>
+  
+  <link rel="icon" type="image/png" href="../assets/images/icon.png" >
   <link rel="stylesheet" href="../global/css/global.css">
   <link rel="stylesheet" href="../global/css/menu.css">
   <link rel="stylesheet" href="../global/css/toast.css">
@@ -92,7 +94,7 @@
           <h2 id="pecaModalTitle">Novo item</h2>
           <p id="pecaModalSubtitle">Cadastre uma nova peça no estoque.</p>
         </div>
-        <button class="estoque-modal-close" type="button" id="btnFecharPecaModal" aria-label="Fechar">×</button>
+        <button class="modal-close" type="button" id="btnFecharPecaModal" aria-label="Fechar">×</button>
       </div>
 
       <form id="pecaForm" novalidate>
@@ -182,7 +184,7 @@
           <h2 id="entradaModalTitle">Entrada de estoque</h2>
           <p id="entradaPecaNome">—</p>
         </div>
-        <button class="estoque-modal-close" type="button" id="btnFecharEntradaModal" aria-label="Fechar">×</button>
+        <button class="modal-close" type="button" id="btnFecharEntradaModal" aria-label="Fechar">×</button>
       </div>
       <form id="entradaForm" novalidate>
         <div class="movimento-resumo">
@@ -217,7 +219,7 @@
           <h2 id="saidaModalTitle">Saída de estoque</h2>
           <p id="saidaPecaNome">—</p>
         </div>
-        <button class="estoque-modal-close" type="button" id="btnFecharSaidaModal" aria-label="Fechar">×</button>
+        <button class="modal-close" type="button" id="btnFecharSaidaModal" aria-label="Fechar">×</button>
       </div>
       <form id="saidaForm" novalidate>
         <div class="movimento-resumo">
@@ -245,7 +247,7 @@
           <h2 id="deletePecaTitle">Excluir item?</h2>
           <p>Essa ação não pode ser desfeita.</p>
         </div>
-        <button class="estoque-modal-close" type="button" id="btnFecharDeleteModal" aria-label="Fechar">×</button>
+        <button class="modal-close" type="button" id="btnFecharDeleteModal" aria-label="Fechar">×</button>
       </div>
       <div class="delete-modal-body">
         <p>Deseja realmente excluir <strong id="deletePecaNome">—</strong> do estoque?</p>

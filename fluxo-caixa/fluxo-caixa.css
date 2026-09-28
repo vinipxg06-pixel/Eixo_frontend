@@ -10,8 +10,7 @@
 .fluxo-subtitle {
   margin-top: 4px;
   color: var(--color-text-muted);
-  font-size: 10px;
-}
+  font-size: 12px;}
 
 .btn-novo-lancamento {
   min-height: 34px;
@@ -47,8 +46,7 @@
 .summary-card-head span {
   color: #444;
   font-family: var(--font-mono);
-  font-size: 8px;
-  letter-spacing: .1em;
+  font-size: 12px;  letter-spacing: .1em;
   text-transform: uppercase;
 }
 
@@ -101,10 +99,9 @@
   padding: 4px 10px;
   background: rgba(255,255,255,.04);
   border: 1px solid var(--color-border);
-  color: #666;
+  color: #888;
   font-family: var(--font-mono);
-  font-size: 8px;
-  letter-spacing: .06em;
+  font-size: 12px;  letter-spacing: .06em;
   text-transform: uppercase;
   cursor: pointer;
 }
@@ -138,8 +135,7 @@
   border-bottom: 1px solid var(--color-border);
   color: var(--color-text-secondary);
   font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 500;
+  font-size: 12px;  font-weight: 500;
   letter-spacing: .12em;
   text-align: left;
   text-transform: uppercase;
@@ -151,8 +147,7 @@
   padding: 0 14px;
   border-bottom: 1px solid rgba(255,255,255,.045);
   color: #888;
-  font-size: 10.5px;
-  vertical-align: middle;
+  font-size: 12px;  vertical-align: middle;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -162,9 +157,9 @@
 
 .fluxo-date,
 .fluxo-os {
-  color: #666 !important;
+  color: #888 !important;
   font-family: var(--font-mono);
-  font-size: 9px !important;
+  font-size: 11px !important;
 }
 .fluxo-os.linked { color: var(--color-primary) !important; }
 .fluxo-description { color: #ddd !important; font-weight: 500; }
@@ -177,8 +172,7 @@
   background: rgba(255,255,255,.055);
   color: #888;
   font-family: var(--font-mono);
-  font-size: 8px;
-  letter-spacing: .04em;
+  font-size: 12px;  letter-spacing: .04em;
   text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
@@ -192,8 +186,7 @@
   padding: 0 8px;
   border: 1px solid;
   font-family: var(--font-mono);
-  font-size: 8px;
-  letter-spacing: .05em;
+  font-size: 12px;  letter-spacing: .05em;
   text-transform: uppercase;
 }
 .fluxo-type.entrada { background: rgba(74,222,128,.08); border-color: rgba(74,222,128,.25); color: var(--color-success); }
@@ -201,7 +194,7 @@
 
 .fluxo-value {
   font-family: var(--font-mono);
-  font-size: 10.5px !important;
+  font-size: 12px !important;
   font-weight: 600;
 }
 .fluxo-value.entrada { color: var(--color-success) !important; }
@@ -217,7 +210,7 @@
   justify-content: center;
   border: 1px solid var(--color-border);
   background: transparent;
-  color: #666;
+  color: #888;
   cursor: pointer;
 }
 .fluxo-icon-btn:hover { background: #1e1e1e; color: #bbb; }
@@ -232,9 +225,8 @@
   justify-content: center;
   flex-direction: column;
   gap: 8px;
-  color: #555;
-  font-size: 11px;
-}
+  color: #777;
+  font-size: 12px;}
 .fluxo-empty strong { color: #888; font-family: var(--font-display); font-size: 17px; letter-spacing: .05em; text-transform: uppercase; }
 .loading-spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,.08); border-top-color: var(--color-primary); border-radius: 50%; animation: fluxo-spin .7s linear infinite; }
 @keyframes fluxo-spin { to { transform: rotate(360deg); } }
@@ -268,17 +260,7 @@
   border-bottom: 1px solid var(--color-border);
 }
 .fluxo-modal-header h2 { font-family: var(--font-display); font-size: 20px; letter-spacing: .07em; text-transform: uppercase; }
-.fluxo-modal-header p { margin-top: 3px; color: #555; font-size: 10px; }
-.fluxo-modal-close {
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  background: transparent;
-  border: 0;
-  color: #555;
-  cursor: pointer;
-  font-size: 20px;
-}
+.fluxo-modal-header p { margin-top: 3px; color: #777; font-size: 11px; }
 .fluxo-modal-body {
   display: grid;
   grid-template-columns: repeat(2, minmax(0,1fr));

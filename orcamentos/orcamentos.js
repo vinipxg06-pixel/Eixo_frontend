@@ -273,7 +273,7 @@ async function baixarOrcamentoTxt(orcamento) {
     const totalOrcamento = Number(orcamento.valorTotal ?? totalCalculado);
 
     const linhas = [
-      'EIXO - SISTEMA DE GERENCIAMENTO DE OFICINA',
+      'EIXO | SISTEMA DE GERENCIAMENTO DE OFICINA',
       '',
       `ORÇAMENTO ${numero}`,
       `Data: ${formatDateTime(orcamento.createdAt)}`,

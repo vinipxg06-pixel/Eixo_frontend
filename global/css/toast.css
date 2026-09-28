@@ -42,8 +42,7 @@
 
 .toast-message {
   color: var(--color-text-secondary);
-  font-size: 11px;
-  line-height: 1.45;
+  font-size: 12px;  line-height: 1.45;
 }
 
 .toast-close {
