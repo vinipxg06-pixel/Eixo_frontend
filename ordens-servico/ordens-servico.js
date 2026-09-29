@@ -4,6 +4,7 @@ renderHeader('Ordens de Serviço');
 const oficinaId = Session.getOficinaId();
 
 const state = {
+  clientesComVeiculo: new Set(), // ids dos clientes que têm ao menos um veículo cadastrado
   ordens: [],
   clientes: [],
   estoque: [],
@@ -59,6 +60,19 @@ const elements = {
 };
 
 initOs();
+
+async function carregarClientesComVeiculo() {
+  const ids = new Set();
+  await Promise.all(state.clientes.map(async (cliente) => {
+    try {
+      const veiculos = await apiRequest(`/oficinas/${oficinaId}/veiculos/${cliente.clienteId}`);
+      if (Array.isArray(veiculos) && veiculos.length > 0) ids.add(String(cliente.clienteId));
+    } catch (error) {
+      console.warn('Não foi possível verificar veículos do cliente', cliente.clienteId, error);
+    }
+  }));
+  state.clientesComVeiculo = ids;
+}
 
 function initOs() {
   if (!oficinaId) {
@@ -269,14 +283,26 @@ function handleActionMenuClick(event) {
   else if (action === 'fechar') abrirFecharModal(os);
 }
 
-function preencherClientes() {
+function preencherClientes(apenasAtivos = false) {
   elements.clienteId.innerHTML = '<option value="">Selecione</option>';
-  state.clientes.forEach((cliente) => {
+
+  const lista = apenasAtivos ? clientesAtivos() : state.clientes;
+
+  lista.forEach((cliente) => {
     const option = document.createElement('option');
     option.value = cliente.clienteId;
     option.textContent = cliente.nomeCliente;
     elements.clienteId.appendChild(option);
   });
+}
+
+function clientesAtivos() {
+  return state.clientes.filter((cliente) => normalizeStatusValue(cliente.status) === 'Ativo');
+}
+
+function normalizeStatusValue(status) {
+  const normalized = String(status || 'Ativo').trim().toLowerCase();
+  return normalized === 'inativo' ? 'Inativo' : 'Ativo';
 }
 
 async function handleClienteChange() {
@@ -334,18 +360,24 @@ function abrirModalNovaOs() {
   elements.clienteId.disabled = false;
   elements.veiculoId.disabled = true;
   elements.btnAdicionarPeca.disabled = false;
+
+  preencherClientes(true); // só clientes ativos
+
   renderPecasEditor();
   atualizarResumo();
   abrirModal();
 }
 
 async function abrirModalEditar(os) {
+  resetModal();
+  preencherClientes(false);
   if (os.status !== 'Aberta') {
     showToast('Ordens de serviço fechadas não podem ser editadas.', 'warning');
     return;
   }
 
   resetModal();
+  preencherClientes(false);
   state.modoModal = 'editar';
   state.osEmEdicao = os;
   elements.modalTitle.textContent = `Editar ${formatOsNumero(os.idOrdemServico)}`;
@@ -372,6 +404,7 @@ async function abrirModalEditar(os) {
 
 async function abrirModalVisualizar(os) {
   resetModal();
+  preencherClientes(false);
   state.modoModal = 'visualizar';
   state.osEmEdicao = os;
   elements.modalTitle.textContent = `Visualizar ${formatOsNumero(os.idOrdemServico)}`;
@@ -621,6 +654,7 @@ async function salvarOs(event) {
       showToast('Ordem de serviço atualizada com sucesso.', 'success');
     }
 
+    setSaving(false);
     fecharModalOs();
     await atualizarListaAposMutacao();
   } catch (error) {

@@ -224,11 +224,19 @@ async function salvarLancamento(event) {
     return;
   }
 
-  if (valor < 0 || !Number.isFinite(valor)) {
-    showToast('Informe um valor válido.', 'warning');
-    el.valor.focus();
-    return;
-  }
+  const VALOR_MAXIMO = 1000000; // R$ 1.000.000,00
+
+if (valor < 0 || !Number.isFinite(valor)) {
+  showToast('Informe um valor válido.', 'warning');
+  el.valor.focus();
+  return;
+}
+
+if (valor > VALOR_MAXIMO) {
+  showToast(`O valor máximo permitido é ${Formatters.formatCurrencyBRL(VALOR_MAXIMO)}.`, 'warning');
+  el.valor.focus();
+  return;
+}
 
   const payload = {
     descricao,
@@ -299,6 +307,9 @@ async function confirmarDelete() {
 
 el.valor.addEventListener('input', () => {
   el.valor.value = Formatters.formatCurrencyInput(el.valor.value);
+  if (Formatters.currencyToNumber(el.valor.value) > 1000000) {
+    el.valor.value = Formatters.formatCurrencyBRL(1000000);
+  }
 });
 
 el.novo.addEventListener('click', () => abrirModal());

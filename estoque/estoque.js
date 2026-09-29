@@ -477,6 +477,29 @@ function abrirDeleteModal(peca) {
   abrirModal(elements.deleteModal);
 }
 
+// Traduz erros técnicos (ex.: violação de FK/constraint do banco quando ainda
+// existe quantidade em estoque) em uma mensagem única e compreensível.
+function getDeleteErrorMessage(error, peca) {
+  const raw = String(
+    error?.body?.message || error?.body?.mensagem || error?.message || ''
+  ).toLowerCase();
+
+  const pareceViolacaoDeIntegridade =
+    error?.status === 409 ||
+    raw.includes('foreign key') ||
+    raw.includes('constraint') ||
+    raw.includes('integrity') ||
+    raw.includes('fk_');
+
+  const temQuantidadeEmEstoque = toNumber(peca?.quantidade) > 0;
+
+  if (pareceViolacaoDeIntegridade || temQuantidadeEmEstoque) {
+    return 'Não é possível excluir esta peça pois ainda existe quantidade em estoque. Zere o estoque (saída) antes de excluir.';
+  }
+
+  return getApiErrorMessage(error, 'Não foi possível excluir o item.');
+}
+
 function fecharDeleteModal() {
   if (state.excluindo) return;
   fecharModal(elements.deleteModal);
@@ -496,8 +519,8 @@ async function confirmarExclusao() {
     fecharDeleteModal();
     await recarregarEstoque();
   } catch (error) {
-    console.error(error);
-    showToast(getApiErrorMessage(error, 'Não foi possível excluir o item.'), 'error');
+  console.error(error);
+  showToast(getDeleteErrorMessage(error, peca), 'error');
   } finally {
     state.excluindo = false;
     elements.btnConfirmarDelete.disabled = false;

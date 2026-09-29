@@ -218,9 +218,18 @@ function preencherClientes(apenasAtivos = false) {
 // não vier (ainda não implementado no backend), mantém o comportamento atual
 // em vez de esconder todos os clientes por engano.
 function clientesAtivos() {
-  const algumClienteTemCampoAtivo = state.clientes.some((cliente) => cliente.ativo !== undefined);
-  if (!algumClienteTemCampoAtivo) return state.clientes;
-  return state.clientes.filter((cliente) => cliente.ativo !== false);
+  return state.clientes.filter((cliente) => clienteEstaAtivo(cliente));
+}
+
+function clienteEstaAtivo(cliente) {
+  const valor = cliente.ativo ?? cliente.status ?? cliente.situacao ?? cliente.isAtivo;
+
+  if (valor === undefined || valor === null) return true; // campo não veio, não filtra
+  if (typeof valor === 'boolean') return valor;
+  if (typeof valor === 'number') return valor === 1;
+
+  const texto = String(valor).trim().toUpperCase();
+  return ['S', 'SIM', 'ATIVO', 'TRUE', '1'].includes(texto);
 }
 
 function preencherMarcas() {
