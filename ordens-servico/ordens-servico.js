@@ -2,6 +2,7 @@ renderMenu('ordens-servico');
 renderHeader('Ordens de Serviço');
 
 const oficinaId = Session.getOficinaId();
+const VALOR_MAXIMO_OS = 1000000; // R$ 1.000.000,00
 
 const state = {
   clientesComVeiculo: new Set(), // ids dos clientes que têm ao menos um veículo cadastrado
@@ -369,8 +370,6 @@ function abrirModalNovaOs() {
 }
 
 async function abrirModalEditar(os) {
-  resetModal();
-  preencherClientes(false);
   if (os.status !== 'Aberta') {
     showToast('Ordens de serviço fechadas não podem ser editadas.', 'warning');
     return;
@@ -589,6 +588,11 @@ function handlePecasClick(event) {
 
 function handleMoneyInput(event) {
   event.target.value = Formatters.formatCurrencyInput(event.target.value);
+
+  if (Formatters.currencyToNumber(event.target.value) > VALOR_MAXIMO_OS) {
+    event.target.value = Formatters.formatCurrencyBRL(VALOR_MAXIMO_OS);
+  }
+
   clearFieldError('osMaoDeObra');
   atualizarResumo();
 }
@@ -626,6 +630,7 @@ async function salvarOs(event) {
   if (!descricao) { setFieldError('osDescricao', 'Informe a descrição do serviço.'); valid = false; }
   if (descricao.length > 100) { setFieldError('osDescricao', 'A descrição deve ter no máximo 100 caracteres.'); valid = false; }
   if (maoDeObra < 0) { setFieldError('osMaoDeObra', 'A mão de obra não pode ser negativa.'); valid = false; }
+  else if (maoDeObra > VALOR_MAXIMO_OS) { setFieldError('osMaoDeObra', `O valor máximo permitido é ${Formatters.formatCurrencyBRL(VALOR_MAXIMO_OS)}.`); valid = false; }
 
   if (state.pecasCarregadas && !validarPecas()) valid = false;
   if (!valid) return;

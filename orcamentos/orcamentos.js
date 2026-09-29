@@ -638,6 +638,10 @@ async function salvarOrcamento(event) {
     descricao: elements.descricao.value.trim()
   };
 
+  const VALOR_MAXIMO_OS = 1000000; // R$ 1.000.000,00
+
+if (maoDeObra < 0) { setFieldError('osMaoDeObra', 'A mão de obra não pode ser negativa.'); valid = false; }
+else if (maoDeObra > VALOR_MAXIMO_OS) { setFieldError('osMaoDeObra', `O valor máximo permitido é ${Formatters.formatCurrencyBRL(VALOR_MAXIMO_OS)}.`); valid = false; }
   const clienteId = elements.clienteId.value;
   const veiculoId = elements.veiculoId.value;
 
@@ -679,6 +683,8 @@ async function salvarOrcamento(event) {
   }
 }
 
+const VALOR_MAXIMO_ORCAMENTO = 1000000; // R$ 1.000.000,00
+
 function validarOrcamento(payload, clienteId, veiculoId, editando) {
   clearFieldErrors();
   let valid = true;
@@ -687,11 +693,18 @@ function validarOrcamento(payload, clienteId, veiculoId, editando) {
   if (!editando && !veiculoId) { setFieldError('veiculoId', 'Selecione o veículo.'); valid = false; }
   if (!payload.descricao) { setFieldError('descricao', 'Informe a descrição.'); valid = false; }
   if (payload.descricao.length > 100) { setFieldError('descricao', 'A descrição deve ter até 100 caracteres.'); valid = false; }
-  if (!Number.isFinite(payload.maoDeObra) || payload.maoDeObra < 0) { setFieldError('maoDeObra', 'Informe um valor válido.'); valid = false; }
+
+  if (!Number.isFinite(payload.maoDeObra) || payload.maoDeObra < 0) {
+    setFieldError('maoDeObra', 'Informe um valor válido.'); valid = false;
+  } else if (payload.maoDeObra > VALOR_MAXIMO_ORCAMENTO) {
+    setFieldError('maoDeObra', `O valor máximo permitido é ${Formatters.formatCurrencyBRL(VALOR_MAXIMO_ORCAMENTO)}.`); valid = false;
+  }
 
   if (!valid) showToast('Revise os campos obrigatórios.', 'warning');
   return valid;
 }
+
+const QUANTIDADE_MAXIMA_PECA = 999999;
 
 function validarPecas() {
   for (const item of state.pecasEditor) {
@@ -701,6 +714,10 @@ function validarPecas() {
     }
     if (!Number.isFinite(Number(item.quantidade)) || Number(item.quantidade) <= 0) {
       showToast('A quantidade das peças deve ser maior que zero.', 'warning');
+      return false;
+    }
+    if (Number(item.quantidade) > QUANTIDADE_MAXIMA_PECA) {
+      showToast(`A quantidade máxima por peça é ${QUANTIDADE_MAXIMA_PECA.toLocaleString('pt-BR')}.`, 'warning');
       return false;
     }
   }
