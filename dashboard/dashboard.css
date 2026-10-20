@@ -269,3 +269,51 @@
   .dashboard-table { min-width: 620px; }
   .dashboard-loading { left: 0; }
 }
+
+/* Interatividade dos gráficos — equivalente aos tooltips/hover do dashboard React */
+.dashboard-chart-tooltip {
+  position: fixed;
+  z-index: 2000;
+  min-width: 145px;
+  max-width: 220px;
+  padding: 9px 10px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(17,17,17,.97);
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  color: #aaa;
+  font-family: var(--font-body);
+  font-size: 11px;
+  line-height: 1.55;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(3px);
+  transition: opacity .12s ease, transform .12s ease;
+}
+.dashboard-chart-tooltip.visible { opacity: 1; transform: translateY(0); }
+.dashboard-chart-tooltip > div:not(.dashboard-tooltip-title) { display: flex; align-items: center; gap: 6px; }
+.dashboard-chart-tooltip strong { margin-left: auto; color: #f1f1f1; font-family: var(--font-mono); font-weight: 500; }
+.dashboard-tooltip-title { margin-bottom: 5px; color: #fff; font-family: var(--font-display); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.dashboard-tooltip-dot { width: 6px; height: 6px; flex: 0 0 auto; display: inline-block; }
+.dashboard-tooltip-dot.income, .dashboard-tooltip-dot.closed { background: #cc0000; }
+.dashboard-tooltip-dot.outcome { background: #666; }
+.dashboard-tooltip-dot.open { background: rgba(255,255,255,.28); border: 1px solid rgba(255,255,255,.16); }
+
+.chart-hit-area { fill: transparent; cursor: crosshair; }
+.chart-hover-guide, .chart-hover-point { opacity: 0; pointer-events: none; transition: opacity .1s ease; }
+.chart-hover-guide { stroke: rgba(255,255,255,.16); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+.chart-hover-point { stroke: #111; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.chart-hover-point.income { fill: #cc0000; }
+.chart-hover-point.outcome { fill: #666; }
+.chart-hover-group.is-hovered .chart-hover-guide,
+.chart-hover-group.is-hovered .chart-hover-point { opacity: 1; }
+
+.bar-open, .bar-closed { transition: opacity .12s ease, filter .12s ease; }
+.chart-bar-group.is-hovered .bar-open,
+.chart-bar-group.is-hovered .bar-closed { opacity: 1; filter: brightness(1.35); }
+.dashboard-bar-chart svg:has(.chart-bar-group.is-hovered) .chart-bar-group:not(.is-hovered) .bar-open,
+.dashboard-bar-chart svg:has(.chart-bar-group.is-hovered) .chart-bar-group:not(.is-hovered) .bar-closed { opacity: .48; }
+
+.dashboard-donut.interactive { cursor: crosshair; }
+.dashboard-category-item { transition: color .12s ease, opacity .12s ease; }
+.dashboard-category-item.is-hovered { color: #ddd; }
+.dashboard-category-list:has(.dashboard-category-item.is-hovered) .dashboard-category-item:not(.is-hovered) { opacity: .45; }

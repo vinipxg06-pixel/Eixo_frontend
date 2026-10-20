@@ -15,6 +15,57 @@ const Dashboard = (() => {
 
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => [...document.querySelectorAll(selector)];
+  let chartTooltip = null;
+
+  function getChartTooltip() {
+    if (chartTooltip && document.body.contains(chartTooltip)) return chartTooltip;
+    chartTooltip = document.createElement('div');
+    chartTooltip.className = 'dashboard-chart-tooltip';
+    chartTooltip.setAttribute('role', 'status');
+    chartTooltip.setAttribute('aria-live', 'polite');
+    document.body.appendChild(chartTooltip);
+    return chartTooltip;
+  }
+
+  function showChartTooltip(event, html) {
+    const tooltip = getChartTooltip();
+    tooltip.innerHTML = html;
+    tooltip.classList.add('visible');
+    moveChartTooltip(event);
+  }
+
+  function moveChartTooltip(event) {
+    const tooltip = getChartTooltip();
+    const gap = 14;
+    const rect = tooltip.getBoundingClientRect();
+    let left = event.clientX + gap;
+    let top = event.clientY + gap;
+    if (left + rect.width > window.innerWidth - 8) left = event.clientX - rect.width - gap;
+    if (top + rect.height > window.innerHeight - 8) top = event.clientY - rect.height - gap;
+    tooltip.style.left = `${Math.max(8, left)}px`;
+    tooltip.style.top = `${Math.max(8, top)}px`;
+  }
+
+  function hideChartTooltip() {
+    getChartTooltip().classList.remove('visible');
+    $$('.dashboard-chart .is-hovered').forEach((el) => el.classList.remove('is-hovered'));
+  }
+
+  function bindSvgChartInteraction(containerSelector) {
+    const container = $(containerSelector);
+    if (!container) return;
+    const hitAreas = [...container.querySelectorAll('[data-chart-tooltip]')];
+    hitAreas.forEach((hitArea) => {
+      hitArea.addEventListener('mouseenter', (event) => {
+        container.querySelectorAll('.is-hovered').forEach((el) => el.classList.remove('is-hovered'));
+        const index = hitArea.dataset.chartIndex;
+        if (index !== undefined) container.querySelectorAll(`[data-chart-index="${index}"]`).forEach((el) => el.classList.add('is-hovered'));
+        showChartTooltip(event, hitArea.dataset.chartTooltip);
+      });
+      hitArea.addEventListener('mousemove', moveChartTooltip);
+      hitArea.addEventListener('mouseleave', hideChartTooltip);
+    });
+  }
 
   function currency(value) {
     const n = Number(value || 0);
@@ -221,6 +272,7 @@ const Dashboard = (() => {
     const rows = incomes.map((b, i) => ({ label: b.label, income: b.value, outcome: outcomes[i]?.value || 0 }));
     $('#financialChartSubtitle').textContent = `Entradas e saídas — ${periodLabel()}`;
     $('#financialChart').innerHTML = lineChartSvg(rows);
+    bindSvgChartInteraction('#financialChart');
   }
 
   function lineChartSvg(rows) {
@@ -237,9 +289,15 @@ const Dashboard = (() => {
       return `<line class="chart-grid-line" x1="${L}" y1="${yy}" x2="${W-R}" y2="${yy}"/><text class="chart-axis-label" x="0" y="${yy+3}">${compactNumber(val)}</text>`;
     }).join('');
     const labels = rows.map((r, i) => `<text class="chart-axis-label" text-anchor="middle" x="${x(i)}" y="${H-5}">${escapeHtml(r.label)}</text>`).join('');
+    const hover = rows.map((r, i) => {
+      const left = i === 0 ? L : (x(i - 1) + x(i)) / 2;
+      const right = i === rows.length - 1 ? W - R : (x(i) + x(i + 1)) / 2;
+      const tooltip = `<div class="dashboard-tooltip-title">${escapeHtml(r.label)}</div><div><span class="dashboard-tooltip-dot income"></span>Entradas <strong>${escapeHtml(currency(r.income))}</strong></div><div><span class="dashboard-tooltip-dot outcome"></span>Saídas <strong>${escapeHtml(currency(r.outcome))}</strong></div>`;
+      return `<g class="chart-hover-group" data-chart-index="${i}"><line class="chart-hover-guide" x1="${x(i)}" y1="${T}" x2="${x(i)}" y2="${H-B}"/><circle class="chart-hover-point income" cx="${x(i)}" cy="${y(r.income)}" r="4"/><circle class="chart-hover-point outcome" cx="${x(i)}" cy="${y(r.outcome)}" r="4"/><rect class="chart-hit-area" data-chart-index="${i}" data-chart-tooltip="${escapeHtml(tooltip)}" x="${left}" y="${T}" width="${Math.max(1, right-left)}" height="${H-T-B}"/></g>`;
+    }).join('');
     return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
       <defs><linearGradient id="dashboardIncomeGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#cc0000" stop-opacity=".26"/><stop offset="100%" stop-color="#cc0000" stop-opacity="0"/></linearGradient></defs>
-      ${grid}<path class="chart-area-income" d="${area}"/><path class="chart-line-outcome" d="${path('outcome')}"/><path class="chart-line-income" d="${path('income')}"/>${labels}
+      ${grid}<path class="chart-area-income" d="${area}"/><path class="chart-line-outcome" d="${path('outcome')}"/><path class="chart-line-income" d="${path('income')}"/>${labels}${hover}
     </svg>`;
   }
 
@@ -258,6 +316,7 @@ const Dashboard = (() => {
     if (!total) {
       $('#categoryDonut').style.background = '#222';
       $('#categoryLegend').innerHTML = '<div class="dashboard-category-item">Sem movimentações no período.</div>';
+      setupDonutInteraction([], 0, colors);
       return;
     }
     let cursor = 0;
@@ -268,7 +327,49 @@ const Dashboard = (() => {
       return `${colors[i]} ${start}% ${cursor}%`;
     });
     $('#categoryDonut').style.background = `conic-gradient(${parts.join(',')})`;
-    $('#categoryLegend').innerHTML = rows.map((r, i) => `<div class="dashboard-category-item"><div class="dashboard-category-name"><span class="dashboard-category-swatch" style="background:${colors[i]}"></span><span>${escapeHtml(displayCategory(r.name))}</span></div><span class="dashboard-category-value">${((r.value / total) * 100).toFixed(0)}%</span></div>`).join('');
+    $('#categoryLegend').innerHTML = rows.map((r, i) => `<div class="dashboard-category-item" data-category-index="${i}"><div class="dashboard-category-name"><span class="dashboard-category-swatch" style="background:${colors[i]}"></span><span>${escapeHtml(displayCategory(r.name))}</span></div><span class="dashboard-category-value">${((r.value / total) * 100).toFixed(0)}%</span></div>`).join('');
+    setupDonutInteraction(rows, total, colors);
+  }
+
+  function setupDonutInteraction(rows, total, colors) {
+    const donut = $('#categoryDonut');
+    if (!donut) return;
+    donut.onmousemove = null;
+    donut.onmouseleave = null;
+    donut.classList.toggle('interactive', !!total);
+
+    if (!total || !rows.length) return;
+
+    const ranges = [];
+    let cursor = 0;
+    rows.forEach((row, index) => {
+      const pct = (row.value / total) * 100;
+      ranges.push({ index, start: cursor, end: cursor + pct, row });
+      cursor += pct;
+    });
+
+    donut.onmousemove = (event) => {
+      const rect = donut.getBoundingClientRect();
+      const dx = event.clientX - (rect.left + rect.width / 2);
+      const dy = event.clientY - (rect.top + rect.height / 2);
+      const radius = Math.sqrt(dx * dx + dy * dy);
+      const outer = rect.width / 2;
+      const inner = outer * (29 / 69);
+      if (radius < inner || radius > outer) { hideChartTooltip(); return; }
+
+      let degrees = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+      if (degrees < 0) degrees += 360;
+      const pct = degrees / 3.6;
+      const hit = ranges.find((range) => pct >= range.start && pct < range.end) || ranges[ranges.length - 1];
+      const percentage = ((hit.row.value / total) * 100).toFixed(0);
+      const html = `<div class="dashboard-tooltip-title">${escapeHtml(displayCategory(hit.row.name))}</div><div><span class="dashboard-tooltip-dot" style="background:${colors[hit.index]}"></span>Participação <strong>${percentage}%</strong></div><div>Valor <strong>${escapeHtml(currency(hit.row.value))}</strong></div>`;
+      $$('.dashboard-category-item').forEach((el) => el.classList.toggle('is-hovered', el.dataset.categoryIndex === String(hit.index)));
+      showChartTooltip(event, html);
+    };
+    donut.onmouseleave = () => {
+      $$('.dashboard-category-item').forEach((el) => el.classList.remove('is-hovered'));
+      hideChartTooltip();
+    };
   }
 
   function renderProductionChart() {
@@ -276,6 +377,7 @@ const Dashboard = (() => {
     const closes = makeBuckets('dataFechamento', state.ordens.filter((o) => o.dataFechamento && inRange(o.dataFechamento)), () => 1);
     const rows = opens.map((b, i) => ({ label: b.label, open: b.value, closed: closes[i]?.value || 0 }));
     $('#productionChart').innerHTML = barChartSvg(rows);
+    bindSvgChartInteraction('#productionChart');
   }
 
   function barChartSvg(rows) {
@@ -293,7 +395,8 @@ const Dashboard = (() => {
     const bars = rows.map((r, i) => {
       const cx = L + i * groupW + groupW / 2;
       const yo = y(r.open), yc = y(r.closed);
-      return `<rect class="bar-open" x="${cx-barW-1}" y="${yo}" width="${barW}" height="${H-B-yo}"/><rect class="bar-closed" x="${cx+1}" y="${yc}" width="${barW}" height="${H-B-yc}"/><text class="chart-axis-label" text-anchor="middle" x="${cx}" y="${H-5}">${escapeHtml(r.label)}</text>`;
+      const tooltip = `<div class="dashboard-tooltip-title">${escapeHtml(r.label)}</div><div><span class="dashboard-tooltip-dot open"></span>Abertas <strong>${r.open}</strong></div><div><span class="dashboard-tooltip-dot closed"></span>Fechadas <strong>${r.closed}</strong></div>`;
+      return `<g class="chart-bar-group" data-chart-index="${i}"><rect class="bar-open" data-chart-index="${i}" x="${cx-barW-1}" y="${yo}" width="${barW}" height="${H-B-yo}"/><rect class="bar-closed" data-chart-index="${i}" x="${cx+1}" y="${yc}" width="${barW}" height="${H-B-yc}"/><rect class="chart-hit-area" data-chart-index="${i}" data-chart-tooltip="${escapeHtml(tooltip)}" x="${L + i*groupW}" y="${T}" width="${groupW}" height="${H-T-B}"/><text class="chart-axis-label" text-anchor="middle" x="${cx}" y="${H-5}">${escapeHtml(r.label)}</text></g>`;
     }).join('');
     return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${grid}${bars}</svg>`;
   }
