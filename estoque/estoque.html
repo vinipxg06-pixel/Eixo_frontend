@@ -17,7 +17,7 @@
     <div class="app-content">
       <header data-header></header>
 
-      <main class="app-main estoque-page">
+      <main class="app-main estoque-page app-main--lista">
         <div class="estoque-topbar">
           <div>
             <h1 class="page-title">Estoque</h1>
@@ -32,12 +32,13 @@
               </svg>
               <input id="buscaEstoque" type="search" placeholder="Buscar..." autocomplete="off" aria-label="Buscar item no estoque">
             </div>
+            <button class="btn btn-secondary btn-filtro-estoque" type="button" id="btnFiltroSituacao" aria-label="Filtrar por situação" title="Alternar entre peças ativas, inativas e todas">Ativas</button>
             <button class="btn btn-primary btn-novo-estoque" type="button" id="btnNovaPeca">+ Novo</button>
           </div>
         </div>
 
-        <section class="estoque-table-shell">
-          <div class="estoque-loading" id="estoqueLoading">
+        <section class="estoque-table-shell painel-lista">
+          <div class="estoque-loading painel-lista-estado" id="estoqueLoading">
             <span class="loading-spinner"></span>
             <span>Carregando estoque...</span>
           </div>
@@ -62,7 +63,7 @@
             </table>
           </div>
 
-          <div class="estoque-empty hidden" id="estoqueEmpty">
+          <div class="estoque-empty painel-lista-estado hidden" id="estoqueEmpty">
             <strong>Nenhum item encontrado</strong>
             <span id="estoqueEmptyText">Cadastre o primeiro item do estoque.</span>
           </div>
@@ -83,6 +84,10 @@
     <button type="button" data-stock-action="editar" role="menuitem">
       <span class="action-menu-icon">✎</span>
       <span><strong>Editar</strong><small>Alterar dados da peça</small></span>
+    </button>
+    <button type="button" data-stock-action="alternar-situacao" role="menuitem">
+      <span class="action-menu-icon" id="acaoSituacaoIcone">⏸</span>
+      <span><strong id="acaoSituacaoTitulo">Inativar</strong><small id="acaoSituacaoDescricao">Ocultar de orçamentos e OS</small></span>
     </button>
   </div>
 
@@ -107,7 +112,7 @@
 
           <div class="form-field">
             <label for="categoria">Categoria *</label>
-            <select id="categoria" name="categoria" required>
+            <select id="categoria" name="categoria" required data-pesquisavel>
               <option value="">Selecione</option>
               <option value="Motor">Motor</option>
               <option value="Freios">Freios</option>
@@ -164,9 +169,15 @@
           <div class="form-field form-field-wide">
             <label for="precoUnitario">Preço unitário *</label>
             <input id="precoUnitario" name="precoUnitario" type="text" inputmode="decimal" placeholder="R$ 0,00" required>
+            <small class="field-help hidden" id="precoUnitarioEditHelp">Preço médio, recalculado automaticamente a cada Entrada.</small>
             <small class="field-error" data-error-for="precoUnitario"></small>
           </div>
         </div>
+
+        <label class="campo-checkbox" id="registrarCompraInicialWrap">
+          <input type="checkbox" id="registrarCompraInicial" checked>
+          <span>Registrar a quantidade inicial como compra no fluxo de caixa</span>
+        </label>
 
         <div class="estoque-modal-actions">
           <button class="btn btn-secondary" type="button" id="btnCancelarPeca">Cancelar</button>
@@ -203,6 +214,10 @@
             <small class="field-error" data-error-for="precoUnitarioEntrada"></small>
           </div>
         </div>
+        <label class="campo-checkbox">
+          <input type="checkbox" id="registrarEntradaCaixa" checked>
+          <span>Registrar como compra (saída) no fluxo de caixa</span>
+        </label>
         <div class="estoque-modal-actions">
           <button class="btn btn-secondary" type="button" id="btnCancelarEntrada">Cancelar</button>
           <button class="btn btn-primary" type="submit" id="btnConfirmarEntrada">Confirmar entrada</button>
@@ -231,6 +246,16 @@
           <input id="quantidadeSaida" type="text" inputmode="decimal" placeholder="0" required>
           <small class="field-error" data-error-for="quantidadeSaida"></small>
         </div>
+        <label class="campo-checkbox">
+          <input type="checkbox" id="registrarSaidaCaixa">
+          <span>Registrar como venda (entrada) no fluxo de caixa</span>
+        </label>
+        <div class="form-field hidden" id="valorVendaWrap">
+          <label for="valorUnitarioVenda">Valor unitário de venda *</label>
+          <input id="valorUnitarioVenda" type="text" inputmode="decimal" placeholder="R$ 0,00">
+          <small class="field-help">Sugerido pelo preço médio da peça.</small>
+          <small class="field-error" data-error-for="valorUnitarioVenda"></small>
+        </div>
         <div class="estoque-modal-actions">
           <button class="btn btn-secondary" type="button" id="btnCancelarSaida">Cancelar</button>
           <button class="btn btn-primary" type="submit" id="btnConfirmarSaida">Confirmar saída</button>
@@ -245,7 +270,7 @@
       <div class="estoque-modal-header">
         <div>
           <h2 id="deletePecaTitle">Excluir item?</h2>
-          <p>Essa ação não pode ser desfeita.</p>
+          <p>Só peças nunca usadas podem ser excluídas. Peças com histórico devem ser inativadas.</p>
         </div>
         <button class="modal-close" type="button" id="btnFecharDeleteModal" aria-label="Fechar">×</button>
       </div>
@@ -266,6 +291,7 @@
   <script src="../global/js/layout.js"></script>
   <script src="../global/js/toast.js"></script>
   <script src="../global/js/formatters.js"></script>
+  <script src="../global/js/select-pesquisavel.js"></script>
   <script src="./estoque.js"></script>
 </body>
 </html>

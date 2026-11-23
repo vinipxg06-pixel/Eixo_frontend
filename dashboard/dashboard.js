@@ -117,10 +117,7 @@ const Dashboard = (() => {
   }
 
   async function loadData() {
-    if (!oficinaId) {
-      showToast?.('Oficina não encontrada na sessão.', 'error');
-      return;
-    }
+    if (!Session.exigirLogin()) return;
 
     toggleLoading(true);
     const calls = {
@@ -141,6 +138,9 @@ const Dashboard = (() => {
       if (result.status === 'fulfilled') state[key] = Array.isArray(result.value) ? result.value : [];
       else { state[key] = []; failures++; }
     });
+
+    // Regra: lançamentos cancelados não entram em nenhuma métrica
+    state.fluxo = state.fluxo.filter((m) => !m.cancelada);
 
     if (failures) showToast?.(`${failures} indicador(es) não puderam ser carregados.`, 'warning');
     toggleLoading(false);

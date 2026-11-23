@@ -388,15 +388,6 @@
   margin: 18px -20px -20px;
   border-top: 1px solid var(--color-border);
 }
-.btn-danger {
-  background: var(--color-primary);
-  color: white;
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
 .movimento-resumo {
   display: flex;
   align-items: center;
@@ -444,3 +435,8 @@
   .estoque-table-wrap { overflow-x: auto; }
   .estoque-table { min-width: 980px; table-layout: fixed; }
 }
+
+/* Peças inativas: continuam no histórico, mas não aparecem em orçamentos/OS */
+.estoque-row-inativa td { opacity: .5; }
+.stock-status.inativa { background: transparent; border-color: var(--color-border); color: var(--color-text-muted); }
+

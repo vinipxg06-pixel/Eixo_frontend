@@ -18,7 +18,7 @@
     <div class="app-content">
       <header data-header></header>
 
-      <main class="app-main fluxo-page">
+      <main class="app-main fluxo-page app-main--lista">
         <section class="fluxo-topbar">
           <div>
             <h1 class="page-title">Fluxo de Caixa</h1>
@@ -65,13 +65,13 @@
           <button class="fluxo-filter" type="button" data-filter="Saida">Saídas</button>
         </section>
 
-        <section class="fluxo-table-shell">
-          <div class="fluxo-loading" id="fluxoLoading">
+        <section class="fluxo-table-shell painel-lista">
+          <div class="fluxo-loading painel-lista-estado" id="fluxoLoading">
             <span class="loading-spinner"></span>
             <span>Carregando movimentações...</span>
           </div>
 
-          <div class="fluxo-empty hidden" id="fluxoEmpty">
+          <div class="fluxo-empty painel-lista-estado hidden" id="fluxoEmpty">
             <strong>Nenhum lançamento</strong>
             <span>Não há movimentações para o filtro selecionado.</span>
           </div>
@@ -124,7 +124,7 @@
 
           <div class="field">
             <label for="categoria">Categoria *</label>
-            <select id="categoria" name="categoria" required></select>
+            <select id="categoria" name="categoria" required data-pesquisavel></select>
           </div>
 
           <div class="field field-span-2">
@@ -141,21 +141,21 @@
     </section>
   </div>
 
-  <div class="modal-backdrop hidden" id="deleteLancamentoModal" aria-hidden="true">
-    <section class="delete-modal" role="dialog" aria-modal="true" aria-labelledby="deleteLancamentoTitle">
+  <div class="modal-backdrop hidden" id="cancelarLancamentoModal" aria-hidden="true">
+    <section class="delete-modal" role="dialog" aria-modal="true" aria-labelledby="cancelarLancamentoTitle">
       <div class="fluxo-modal-header">
         <div>
-          <h2 id="deleteLancamentoTitle">Excluir lançamento?</h2>
-          <p>Essa ação não pode ser desfeita.</p>
+          <h2 id="cancelarLancamentoTitle">Cancelar lançamento?</h2>
+          <p>Ele continuará visível no histórico, mas deixará de contar nos totais.</p>
         </div>
-        <button class="modal-close" type="button" id="btnFecharDeleteLancamento" aria-label="Fechar">×</button>
+        <button class="modal-close" type="button" id="btnFecharCancelarLancamento" aria-label="Fechar">×</button>
       </div>
       <div class="delete-modal-body">
-        <p>Deseja realmente excluir <strong id="deleteLancamentoDescricao">—</strong>?</p>
+        <p>Deseja cancelar <strong id="cancelarLancamentoDescricao">—</strong>?</p>
       </div>
       <div class="fluxo-modal-actions">
-        <button class="btn btn-secondary" type="button" id="btnCancelarDeleteLancamento">Cancelar</button>
-        <button class="btn btn-danger" type="button" id="btnConfirmarDeleteLancamento">Excluir</button>
+        <button class="btn btn-secondary" type="button" id="btnVoltarCancelarLancamento">Voltar</button>
+        <button class="btn btn-danger" type="button" id="btnConfirmarCancelarLancamento">Cancelar lançamento</button>
       </div>
     </section>
   </div>
@@ -167,6 +167,7 @@
   <script src="../global/js/layout.js"></script>
   <script src="../global/js/toast.js"></script>
   <script src="../global/js/formatters.js"></script>
+  <script src="../global/js/select-pesquisavel.js"></script>
   <script src="./fluxo-caixa.js"></script>
 </body>
 </html>

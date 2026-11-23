@@ -10,7 +10,6 @@ const state = {
   estoque: [],
   filtro: '',
   orcamentoEmEdicao: null,
-  pecasOriginais: [],
   pecasEditor: [],
   veiculosDoCliente: [],
   salvando: false,
@@ -61,14 +60,7 @@ const elements = {
 initOrcamentos();
 
 function initOrcamentos() {
-  if (!oficinaId) {
-    elements.loading.classList.add('hidden');
-    elements.empty.classList.remove('hidden');
-    elements.emptyText.textContent = 'Oficina não identificada na sessão.';
-    elements.btnNovo.disabled = true;
-    showToast('Não foi possível identificar a oficina. Faça login novamente.', 'error');
-    return;
-  }
+  if (!Session.exigirLogin()) return;
 
   elements.btnNovo.addEventListener('click', abrirModalNovo);
   elements.busca.addEventListener('input', (event) => {
@@ -131,7 +123,7 @@ async function carregarDadosIniciais() {
     console.error(error);
     state.orcamentos = [];
     renderOrcamentos();
-    showToast(getApiErrorMessage(error, 'Não foi possível carregar os orçamentos.'), 'error');
+    showToast(ApiErros.mensagem(error, 'Não foi possível carregar os orçamentos.'), 'error');
   } finally {
     setListLoading(false);
   }
@@ -195,6 +187,9 @@ function renderOrcamentos() {
 
   elements.tbody.appendChild(fragment);
 }
+
+/** Campos da API que têm um campo correspondente neste formulário (nome na API → id na tela). */
+const CAMPOS_FORMULARIO = { clienteId: 'clienteId', veiculoId: 'veiculoId', descricao: 'descricao', maoDeObra: 'maoDeObra' };
 
 function handleTableClick(event) {
   const button = event.target.closest('[data-action="menu"]');
@@ -284,7 +279,7 @@ async function baixarOrcamentoTxt(orcamento) {
     ];
 
     if (cliente?.telefone) linhas.push(`Telefone: ${Formatters.formatPhone(cliente.telefone)}`);
-    if (cliente?.cpfcnpj) linhas.push(`CPF/CNPJ: ${Formatters.formatCpfCnpj(cliente.cpfcnpj)}`);
+    if (cliente?.cpfCnpj) linhas.push(`CPF/CNPJ: ${Formatters.formatCpfCnpj(cliente.cpfCnpj)}`);
     if (cliente?.email) linhas.push(`E-mail: ${cliente.email}`);
 
     linhas.push('', 'VEÍCULO');
@@ -344,7 +339,7 @@ async function baixarOrcamentoTxt(orcamento) {
 
     showToast(`Arquivo ${numero}.txt gerado com sucesso.`, 'success');
   } catch (error) {
-    showToast(getApiErrorMessage(error, 'Não foi possível gerar o arquivo TXT do orçamento.'), 'error');
+    showToast(ApiErros.mensagem(error, 'Não foi possível gerar o arquivo TXT do orçamento.'), 'error');
   }
 }
 
@@ -395,14 +390,14 @@ async function carregarVeiculosCliente(clienteId, veiculoSelecionado = null) {
   elements.veiculoId.innerHTML = '<option value="">Carregando...</option>';
 
   try {
-    const veiculos = await apiRequest(`/oficinas/${oficinaId}/veiculos/${clienteId}`);
+    const veiculos = await apiRequest(`/oficinas/${oficinaId}/clientes/${clienteId}/veiculos`);
     state.veiculosDoCliente = Array.isArray(veiculos) ? veiculos : [];
     preencherVeiculosCliente(veiculoSelecionado);
   } catch (error) {
     console.error(error);
     state.veiculosDoCliente = [];
     preencherVeiculosCliente();
-    showToast(getApiErrorMessage(error, 'Não foi possível carregar os veículos do cliente.'), 'error');
+    showToast(ApiErros.mensagem(error, 'Não foi possível carregar os veículos do cliente.'), 'error');
   }
 }
 
@@ -424,7 +419,6 @@ function preencherVeiculosCliente(veiculoSelecionado = null) {
 
 function abrirModalNovo() {
   state.orcamentoEmEdicao = null;
-  state.pecasOriginais = [];
   state.pecasEditor = [];
   state.veiculosDoCliente = [];
 
@@ -450,7 +444,6 @@ async function abrirModalEditar(orcamento) {
   }
 
   state.orcamentoEmEdicao = orcamento;
-  state.pecasOriginais = [];
   state.pecasEditor = [];
 
   elements.form.reset();
@@ -475,20 +468,20 @@ async function abrirModalEditar(orcamento) {
   try {
     const pecas = await apiRequest(`/oficinas/${oficinaId}/orcamentos/${orcamento.orcamentoId}/pecas`);
     const lista = Array.isArray(pecas) ? pecas : [];
-    state.pecasOriginais = lista.map((peca) => ({ ...peca }));
     state.pecasEditor = lista.map((peca) => ({
       key: `existing-${peca.idOcPecas}`,
       idOcPecas: peca.idOcPecas,
       estoqueId: peca.estoqueId,
       nomePeca: peca.nomePeca,
       valor: Number(peca.valor ?? 0),
-      quantidade: Number(peca.quantidade ?? 0)
+      quantidade: Number(peca.quantidade ?? 0),
+      quantidadeOriginal: Number(peca.quantidade ?? 0)
     }));
     renderPecasEditor();
     atualizarResumo();
   } catch (error) {
     console.error(error);
-    showToast(getApiErrorMessage(error, 'Não foi possível carregar as peças do orçamento.'), 'error');
+    showToast(ApiErros.mensagem(error, 'Não foi possível carregar as peças do orçamento.'), 'error');
   }
 }
 
@@ -505,7 +498,6 @@ function fecharModalOrcamento() {
   elements.modal.setAttribute('aria-hidden', 'true');
   document.body.style.overflow = '';
   state.orcamentoEmEdicao = null;
-  state.pecasOriginais = [];
   state.pecasEditor = [];
   clearFieldErrors();
 }
@@ -522,7 +514,8 @@ function adicionarLinhaPeca() {
     estoqueId: '',
     nomePeca: '',
     valor: 0,
-    quantidade: 1
+    quantidade: 1,
+    quantidadeOriginal: null
   });
   renderPecasEditor();
   atualizarResumo();
@@ -542,7 +535,7 @@ function handlePecasChange(event) {
       item.estoqueId = '';
       item.nomePeca = '';
       item.valor = 0;
-      showToast('Essa peça já foi adicionada ao orçamento.', 'warning');
+      showToast('Essa peça já está no orçamento. Aumente a quantidade na linha existente.', 'warning');
     } else {
       const estoque = state.estoque.find((peca) => String(peca.estoqueId) === String(estoqueId));
       item.estoqueId = estoqueId;
@@ -589,12 +582,15 @@ function renderPecasEditor() {
     const subtotal = getPecaSubtotal(item);
 
     row.innerHTML = `
-      <select data-piece-field="estoqueId" ${existing ? 'disabled' : ''} aria-label="Peça do estoque">
+      <select data-piece-field="estoqueId" data-pesquisavel ${existing ? 'disabled' : ''} aria-label="Peça do estoque">
         <option value="">Selecione uma peça</option>
         ${options}
       </select>
       <input data-piece-field="quantidade" inputmode="decimal" value="${escapeHtml(formatQuantityInput(item.quantidade))}" aria-label="Quantidade">
-      <div class="budget-part-price" data-piece-subtotal>${escapeHtml(Formatters.formatCurrencyBRL(subtotal))}</div>
+      <div class="budget-part-price">
+        <span data-piece-subtotal>${escapeHtml(Formatters.formatCurrencyBRL(subtotal))}</span>
+        <small class="part-unit-price" data-piece-unit>${renderDescricaoPreco(item)}</small>
+      </div>
       <button class="budget-part-remove" type="button" data-remove-piece="${escapeHtml(item.key)}" title="Remover peça" aria-label="Remover peça">${iconTrash()}</button>
     `;
     elements.pecasEditor.appendChild(row);
@@ -602,7 +598,8 @@ function renderPecasEditor() {
 }
 
 function buildEstoqueOptions(selectedId) {
-  return state.estoque.map((peca) => {
+  const disponiveis = state.estoque.filter((peca) => peca.ativa !== false || String(peca.estoqueId) === String(selectedId));
+  return disponiveis.map((peca) => {
     const selected = String(peca.estoqueId) === String(selectedId) ? 'selected' : '';
     const unidade = peca.unidadeMedida ? ` · ${peca.quantidade} ${peca.unidadeMedida}` : '';
     return `<option value="${escapeHtml(peca.estoqueId)}" ${selected}>${escapeHtml(peca.nomePeca)}${escapeHtml(unidade)} · ${escapeHtml(Formatters.formatCurrencyBRL(peca.precoUnitario))}</option>`;
@@ -610,14 +607,26 @@ function buildEstoqueOptions(selectedId) {
 }
 
 function atualizarSubtotalLinha(row, item) {
-  const target = row.querySelector('[data-piece-subtotal]');
-  if (target) target.textContent = Formatters.formatCurrencyBRL(getPecaSubtotal(item));
+  const subtotal = row.querySelector('[data-piece-subtotal]');
+  const unitario = row.querySelector('[data-piece-unit]');
+  if (subtotal) subtotal.textContent = Formatters.formatCurrencyBRL(getPecaSubtotal(item));
+  if (unitario) unitario.innerHTML = renderDescricaoPreco(item);
+}
+
+function getPrecoAtual(estoqueId) {
+  const estoque = state.estoque.find((peca) => String(peca.estoqueId) === String(estoqueId));
+  return estoque ? Number(estoque.precoUnitario) : NaN;
 }
 
 function getPecaSubtotal(item) {
-  const qtd = Number(item.quantidade ?? 0);
-  const valor = Number(item.valor ?? 0);
-  return Number.isFinite(qtd) && Number.isFinite(valor) ? qtd * valor : 0;
+  const subtotal = PrecificacaoPecas.subtotal(item, getPrecoAtual(item.estoqueId));
+  return Number.isFinite(subtotal) ? subtotal : 0;
+}
+
+function renderDescricaoPreco(item) {
+  if (!item.estoqueId) return '';
+  const { base, destaque } = PrecificacaoPecas.descricao(item, getPrecoAtual(item.estoqueId));
+  return `${escapeHtml(base)}${destaque ? `<span class="preco-atual">${escapeHtml(destaque)}</span>` : ''}`;
 }
 
 function atualizarResumo() {
@@ -628,6 +637,18 @@ function atualizarResumo() {
   elements.resumoTotal.textContent = Formatters.formatCurrencyBRL(totalPecas + maoDeObra);
 }
 
+/**
+ * Estado final das peças, enviado junto com o orçamento numa única requisição.
+ * O backend grava tudo numa transação: se algo falhar, nada é salvo.
+ */
+function montarLinhasPecas() {
+  return state.pecasEditor.map((item) => ({
+    idLinha: item.idOcPecas || null,
+    estoqueId: Number(item.estoqueId),
+    quantidade: Number(item.quantidade)
+  }));
+}
+
 async function salvarOrcamento(event) {
   event.preventDefault();
   if (state.salvando) return;
@@ -635,7 +656,8 @@ async function salvarOrcamento(event) {
   const editando = Boolean(state.orcamentoEmEdicao);
   const payload = {
     maoDeObra: Formatters.currencyToNumber(elements.maoDeObra.value),
-    descricao: elements.descricao.value.trim()
+    descricao: elements.descricao.value.trim(),
+    pecas: montarLinhasPecas()
   };
 
   const clienteId = elements.clienteId.value;
@@ -647,24 +669,18 @@ async function salvarOrcamento(event) {
   setSaving(true);
 
   try {
-    let orcamentoId;
-
     if (editando) {
-      orcamentoId = state.orcamentoEmEdicao.orcamentoId;
+      const orcamentoId = state.orcamentoEmEdicao.orcamentoId;
       await apiRequest(`/oficinas/${oficinaId}/orcamentos/${orcamentoId}`, {
         method: 'PUT',
         body: JSON.stringify(payload)
       });
-      await sincronizarPecas(orcamentoId);
       showToast('Orçamento atualizado com sucesso.', 'success');
     } else {
-      const criado = await apiRequest(`/oficinas/${oficinaId}/orcamentos/cliente/${clienteId}/veiculo/${veiculoId}`, {
+      await apiRequest(`/oficinas/${oficinaId}/orcamentos`, {
         method: 'POST',
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...payload, clienteId: Number(clienteId), veiculoId: Number(veiculoId) })
       });
-      orcamentoId = criado?.orcamentoId;
-      if (!orcamentoId) throw new Error('O backend não retornou o ID do orçamento criado.');
-      await adicionarPecasNovas(orcamentoId, state.pecasEditor);
       showToast('Orçamento criado com sucesso.', 'success');
     }
 
@@ -707,39 +723,6 @@ function validarPecas() {
   return true;
 }
 
-async function sincronizarPecas(orcamentoId) {
-  const atuaisPorId = new Map(
-    state.pecasEditor.filter((item) => item.idOcPecas).map((item) => [String(item.idOcPecas), item])
-  );
-
-  for (const original of state.pecasOriginais) {
-    const atual = atuaisPorId.get(String(original.idOcPecas));
-    if (!atual) {
-      await apiRequest(`/oficinas/${oficinaId}/orcamentos/${orcamentoId}/pecas/${original.idOcPecas}`, { method: 'DELETE' });
-      continue;
-    }
-
-    if (Number(atual.quantidade) !== Number(original.quantidade)) {
-      await apiRequest(`/oficinas/${oficinaId}/orcamentos/${orcamentoId}/pecas/${original.idOcPecas}/quantidade`, {
-        method: 'PATCH',
-        body: JSON.stringify({ quantidade: Number(atual.quantidade) })
-      });
-    }
-  }
-
-  const novas = state.pecasEditor.filter((item) => !item.idOcPecas);
-  await adicionarPecasNovas(orcamentoId, novas);
-}
-
-async function adicionarPecasNovas(orcamentoId, pecas) {
-  for (const item of pecas) {
-    await apiRequest(`/oficinas/${oficinaId}/orcamentos/${orcamentoId}/pecas/${item.estoqueId}`, {
-      method: 'POST',
-      body: JSON.stringify({ quantidade: Number(item.quantidade) })
-    });
-  }
-}
-
 async function recarregarDados() {
   try {
     const [orcamentos, veiculos, estoque] = await Promise.all([
@@ -753,7 +736,7 @@ async function recarregarDados() {
     renderOrcamentos();
   } catch (error) {
     console.error(error);
-    showToast(getApiErrorMessage(error, 'Não foi possível atualizar os dados.'), 'error');
+    showToast(ApiErros.mensagem(error, 'Não foi possível atualizar os dados.'), 'error');
   }
 }
 
@@ -838,7 +821,7 @@ async function executarAcaoPendente() {
     await recarregarDados();
   } catch (error) {
     console.error(error);
-    showToast(getApiErrorMessage(error, 'Não foi possível concluir a operação.'), 'error');
+    showToast(ApiErros.mensagem(error, 'Não foi possível concluir a operação.'), 'error');
   } finally {
     state.executandoAcao = false;
     restaurarAcaoButtons(originalText);
@@ -853,34 +836,13 @@ function restaurarAcaoButtons(text) {
 }
 
 function handleSaveError(error) {
-  const fieldErrors = extractValidationErrors(error?.body);
+  const fieldErrors = ApiErros.campos(error, CAMPOS_FORMULARIO);
   if (fieldErrors.length) {
     fieldErrors.forEach(({ field, message }) => setFieldError(field, message));
     showToast('Revise os dados informados.', 'warning');
     return;
   }
-  showToast(getApiErrorMessage(error, 'Não foi possível salvar o orçamento.'), 'error');
-}
-
-function extractValidationErrors(body) {
-  if (!body) return [];
-  if (Array.isArray(body.errors)) {
-    return body.errors.map((item) => ({
-      field: mapBackendField(item.field || item.campo),
-      message: item.defaultMessage || item.message || item.mensagem || 'Valor inválido.'
-    })).filter((item) => item.field);
-  }
-  if (body.errors && typeof body.errors === 'object') {
-    return Object.entries(body.errors).map(([field, message]) => ({
-      field: mapBackendField(field),
-      message: String(message)
-    })).filter((item) => item.field);
-  }
-  return [];
-}
-
-function mapBackendField(field) {
-  return ({ descricao: 'descricao', maoDeObra: 'maoDeObra' })[field] || null;
+  showToast(ApiErros.mensagem(error, 'Não foi possível salvar o orçamento.'), 'error');
 }
 
 function setFieldError(fieldName, message) {
@@ -988,10 +950,6 @@ function formatPlate(value) {
 
 function normalizeSearch(value) {
   return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-}
-
-function getApiErrorMessage(error, fallback) {
-  return error?.body?.message || error?.body?.mensagem || error?.message || fallback;
 }
 
 function escapeHtml(value) {

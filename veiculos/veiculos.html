@@ -17,7 +17,7 @@
     <div class="app-content">
       <header data-header></header>
 
-      <main class="app-main veiculos-page">
+      <main class="app-main veiculos-page app-main--lista">
         <div class="veiculos-topbar">
           <div>
             <h1 class="page-title">Veículos</h1>
@@ -36,8 +36,8 @@
           </div>
         </div>
 
-        <section class="veiculos-table-shell">
-          <div class="veiculos-loading" id="veiculosLoading">
+        <section class="veiculos-table-shell painel-lista">
+          <div class="veiculos-loading painel-lista-estado" id="veiculosLoading">
             <span class="loading-spinner"></span>
             <span>Carregando veículos...</span>
           </div>
@@ -61,7 +61,7 @@
             </table>
           </div>
 
-          <div class="veiculos-empty hidden" id="veiculosEmpty">
+          <div class="veiculos-empty painel-lista-estado hidden" id="veiculosEmpty">
             <strong>Nenhum veículo encontrado</strong>
             <span id="veiculosEmptyText">Cadastre o primeiro veículo da oficina.</span>
           </div>
@@ -82,12 +82,13 @@
           <div class="form-field">
             <label for="placa">Placa *</label>
             <input id="placa" name="placa" type="text" maxlength="8" autocomplete="off" placeholder="ABC-1D23" required>
+            <small class="field-help hidden" id="placaEditHelp">A placa não pode ser alterada na edição.</small>
             <small class="field-error" data-error-for="placa"></small>
           </div>
 
           <div class="form-field">
             <label for="clienteId">Proprietário *</label>
-            <select id="clienteId" name="clienteId" required>
+            <select id="clienteId" name="clienteId" required data-pesquisavel>
               <option value="">Selecione</option>
             </select>
             <small class="field-help hidden" id="proprietarioEditHelp">O proprietário não pode ser alterado na edição.</small>
@@ -96,7 +97,7 @@
 
           <div class="form-field">
             <label for="marcaId">Marca *</label>
-            <select id="marcaId" name="marcaId" required>
+            <select id="marcaId" name="marcaId" required data-pesquisavel>
               <option value="">Selecione</option>
             </select>
             <small class="field-error" data-error-for="marcaId"></small>
@@ -104,7 +105,7 @@
 
           <div class="form-field">
             <label for="modeloId">Modelo *</label>
-            <select id="modeloId" name="modeloId" disabled required>
+            <select id="modeloId" name="modeloId" disabled required data-pesquisavel>
               <option value="">Selecione uma marca</option>
             </select>
             <small class="field-error" data-error-for="modeloId"></small>
@@ -184,6 +185,7 @@
   <script src="../global/js/layout.js"></script>
   <script src="../global/js/toast.js"></script>
   <script src="../global/js/formatters.js"></script>
+  <script src="../global/js/select-pesquisavel.js"></script>
   <script src="./veiculos.js"></script>
 </body>
 </html>

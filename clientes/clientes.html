@@ -18,7 +18,7 @@
     <div class="app-content">
       <header data-header></header>
 
-      <main class="app-main clientes-page">
+      <main class="app-main clientes-page app-main--lista">
         <div class="clientes-topbar">
           <div class="clientes-title-block">
             <h1 class="page-title">Clientes</h1>
@@ -46,15 +46,15 @@
           </div>
         </div>
 
-        <section class="clientes-list-shell">
-          <div class="clientes-loading" id="clientesLoading">
+        <section class="clientes-list-shell painel-lista">
+          <div class="clientes-loading painel-lista-estado" id="clientesLoading">
             <span class="loading-spinner"></span>
             <span>Carregando clientes...</span>
           </div>
 
           <div class="clientes-list hidden" id="clientesList" aria-live="polite"></div>
 
-          <div class="clientes-empty hidden" id="clientesEmpty">
+          <div class="clientes-empty painel-lista-estado hidden" id="clientesEmpty">
             <strong>Nenhum cliente encontrado</strong>
             <span id="clientesEmptyText">Cadastre o primeiro cliente da oficina.</span>
           </div>
@@ -114,6 +114,23 @@
           <button class="btn btn-primary" type="submit" id="btnSalvarCliente">Salvar cliente</button>
         </div>
       </form>
+    </section>
+  </div>
+
+  <div class="modal-backdrop hidden" id="deleteClienteModal" aria-hidden="true">
+    <section class="delete-modal" role="dialog" aria-modal="true" aria-labelledby="deleteClienteTitle">
+      <div class="delete-modal-header">
+        <h2 id="deleteClienteTitle">Excluir cliente?</h2>
+        <button class="modal-close" type="button" id="btnFecharDeleteCliente" aria-label="Fechar">×</button>
+      </div>
+      <div class="delete-modal-body">
+        <p>Deseja realmente excluir <strong id="deleteClienteNome">—</strong>?</p>
+        <span>Só clientes sem veículos, orçamentos ou ordens de serviço podem ser excluídos. Os demais devem ser inativados.</span>
+      </div>
+      <div class="delete-modal-actions">
+        <button class="btn btn-secondary" type="button" id="btnCancelarDeleteCliente">Cancelar</button>
+        <button class="btn btn-danger" type="button" id="btnConfirmarDeleteCliente">Excluir</button>
+      </div>
     </section>
   </div>
 

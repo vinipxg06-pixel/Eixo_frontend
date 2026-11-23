@@ -71,10 +71,10 @@
 
 .os-table th:nth-child(1), .os-table td:nth-child(1) { width: 10%; }
 .os-table th:nth-child(2), .os-table td:nth-child(2) { width: 21%; }
-.os-table th:nth-child(3), .os-table td:nth-child(3) { width: 23%; }
+.os-table th:nth-child(3), .os-table td:nth-child(3) { width: 21%; }
 .os-table th:nth-child(4), .os-table td:nth-child(4) { width: 13%; }
 .os-table th:nth-child(5), .os-table td:nth-child(5) { width: 13%; }
-.os-table th:nth-child(6), .os-table td:nth-child(6) { width: 11%; }
+.os-table th:nth-child(6), .os-table td:nth-child(6) { width: 13%; } /* cabe o selo CANCELADA */
 .os-table th:nth-child(7), .os-table td:nth-child(7) { width: 9%; }
 
 .os-table th {
@@ -124,6 +124,7 @@
 }
 .os-status.Aberta { color: #4ade80; background: rgba(74,222,128,.07); border-color: rgba(74,222,128,.25); }
 .os-status.Fechada { color: #8b8b8b; background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.12); }
+.os-status.Cancelada { color: #f87171; background: rgba(248,113,113,.06); border-color: rgba(248,113,113,.25); }
 
 .os-actions-col { text-align: right !important; padding-left: 8px !important; padding-right: 12px !important; }
 .os-row-actions { display: flex; justify-content: flex-end; }
@@ -177,6 +178,7 @@
   font-size: 14px;
 }
 .os-action-menu-icon.close-os { color: var(--color-success); }
+.os-action-menu-icon.cancel-os { color: var(--color-primary); }
 .os-action-menu strong { display: block; font-size: 11px; font-weight: 600; }
 .os-action-menu small { display: block; margin-top: 2px; color: #777; font-size: 12px; }
 
@@ -317,3 +319,35 @@
   .os-part-row { grid-template-columns: 1fr 82px 34px; }
   .os-part-price { grid-column: 1 / -1; text-align: left; }
 }
+
+/* Fechamento de OS sem valor: exige confirmação explícita */
+.os-sem-custo { margin-top: 14px; padding: 12px; border: 1px solid rgba(250,204,21,.3); border-radius: 6px; background: rgba(250,204,21,.05); color: #bbb; }
+.os-sem-custo strong { color: var(--color-warning); }
+
+/* OS vinda de orçamento: valor aprovado x valor atual (só aviso, não bloqueia) */
+.os-total-aprovado { display: block; margin-top: 2px; color: var(--color-warning); font-size: 10px; font-weight: 400; }
+.os-summary-aprovado span, .os-summary-aprovado strong { color: #777 !important; }
+.os-aviso-divergencia { margin: 8px 0 0; padding: 8px 10px; border: 1px solid rgba(250,204,21,.25); background: rgba(250,204,21,.05); color: #bba13d; font-size: 11px; line-height: 1.5; }
+
+/* Fechamento: confirmação das peças usadas */
+.os-fechar-pecas { margin-top: 12px; }
+.os-fechar-pecas > p { margin: 0 0 8px; color: #999; }
+.os-fechar-pecas-cabecalho,
+.os-fechar-peca { display: grid; grid-template-columns: 1fr 70px 90px; gap: 10px; align-items: center; }
+.os-fechar-pecas-cabecalho { padding: 0 0 6px; border-bottom: 1px solid #262626; color: #5e5e5e; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.os-fechar-pecas-cabecalho span:not(:first-child) { text-align: right; }
+.os-fechar-peca { padding: 7px 0; border-bottom: 1px solid #1f1f1f; color: #ccc; }
+.os-fechar-peca-nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.os-fechar-peca-lancada { color: #777; font-family: var(--font-mono); text-align: right; }
+.os-fechar-peca input { width: 100%; padding: 5px 6px; text-align: right; font-family: var(--font-mono); }
+.os-fechar-peca input.field-invalid { border-color: var(--color-primary); }
+.os-fechar-total { display: flex; justify-content: space-between; margin-top: 12px; padding-top: 10px; border-top: 1px solid #2b2b2b; }
+.os-fechar-total span { color: #aaa; font-family: var(--font-display); letter-spacing: .06em; text-transform: uppercase; }
+.os-fechar-total strong { color: #fff; font-family: var(--font-mono); font-size: 13px; }
+
+/* Cancelamento */
+#cancelarOsModal .os-field { margin-top: 12px; }
+
+/* OS cancelada: total mantido só como histórico */
+.os-total-cancelado { color: #666; font-weight: 400; }
+.os-total-nao-faturado { display: block; margin-top: 2px; color: #f87171; font-size: 10px; font-weight: 400; }

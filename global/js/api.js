@@ -27,3 +27,30 @@ async function apiRequest(path, options = {}) {
 
   return body;
 }
+
+/**
+ * Leitura dos erros da API. O backend responde sempre no formato ErroPadrao:
+ * { status, error, message, path, errors?: [{ field, message }] } — "errors" só em erros de validação.
+ */
+const ApiErros = {
+  /** Mensagem para exibir ao usuário; usa o fallback quando a API não explica o erro. */
+  mensagem(error, fallback) {
+    if (error?.body?.message) return error.body.message;
+    const mensagemTecnica = !error?.message || /^Erro \d+$/.test(error.message) || error.message === 'Failed to fetch';
+    return mensagemTecnica ? fallback : error.message;
+  },
+
+  /**
+   * Erros por campo. Se camposDoFormulario for informado ({ campoNaApi: idDoCampoNaTela }),
+   * só retorna os campos que existem no formulário.
+   */
+  campos(error, camposDoFormulario = null) {
+    const erros = Array.isArray(error?.body?.errors) ? error.body.errors : [];
+    return erros
+      .map((item) => ({
+        field: camposDoFormulario ? camposDoFormulario[item.field] : item.field,
+        message: item.message || 'Valor inválido.'
+      }))
+      .filter((item) => item.field);
+  }
+};

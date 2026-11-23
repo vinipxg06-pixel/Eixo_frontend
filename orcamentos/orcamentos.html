@@ -18,7 +18,7 @@
     <div class="app-content">
       <header data-header></header>
 
-      <main class="app-main orcamentos-page">
+      <main class="app-main orcamentos-page app-main--lista">
         <div class="orcamentos-topbar">
           <div>
             <h1 class="page-title">ORÇAMENTOS</h1>
@@ -37,8 +37,8 @@
           </div>
         </div>
 
-        <section class="orcamentos-table-shell">
-          <div id="orcamentosLoading" class="orcamentos-loading">
+        <section class="orcamentos-table-shell painel-lista">
+          <div id="orcamentosLoading" class="orcamentos-loading painel-lista-estado">
             <div class="loading-spinner"></div>
             <span>Carregando orçamentos...</span>
           </div>
@@ -60,7 +60,7 @@
             </table>
           </div>
 
-          <div id="orcamentosEmpty" class="orcamentos-empty hidden">
+          <div id="orcamentosEmpty" class="orcamentos-empty painel-lista-estado hidden">
             <strong>Nenhum orçamento</strong>
             <span id="orcamentosEmptyText">Crie o primeiro orçamento da oficina.</span>
           </div>
@@ -109,7 +109,7 @@
           <div class="budget-grid">
             <div class="budget-field">
               <label for="clienteId">Cliente *</label>
-              <select id="clienteId">
+              <select id="clienteId" data-pesquisavel>
                 <option value="">Selecione</option>
               </select>
               <small class="field-error" data-error-for="clienteId"></small>
@@ -117,7 +117,7 @@
 
             <div class="budget-field">
               <label for="veiculoId">Veículo *</label>
-              <select id="veiculoId" disabled>
+              <select id="veiculoId" disabled data-pesquisavel>
                 <option value="">Selecione um cliente</option>
               </select>
               <small class="field-error" data-error-for="veiculoId"></small>
@@ -197,6 +197,8 @@
   <script src="../global/js/layout.js"></script>
   <script src="../global/js/toast.js"></script>
   <script src="../global/js/formatters.js"></script>
+  <script src="../global/js/select-pesquisavel.js"></script>
+  <script src="../global/js/precificacao-pecas.js"></script>
   <script src="./orcamentos.js"></script>
 </body>
 </html>

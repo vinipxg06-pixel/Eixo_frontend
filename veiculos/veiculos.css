@@ -327,21 +327,6 @@
 
 .delete-modal-actions { padding: 14px 22px; margin-top: 10px; }
 
-.btn-danger {
-  background: var(--color-primary);
-  border: 0;
-  color: #fff;
-  cursor: pointer;
-  padding: 8px 18px;
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-
-.btn:disabled,
-.btn-danger:disabled { opacity: .55; cursor: not-allowed; }
 
 @media (max-width: 760px) {
   .veiculos-page { padding: 18px 14px; }

@@ -270,7 +270,6 @@
 }
 .field-span-2 { grid-column: 1 / -1; }
 .fluxo-modal-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 18px; border-top: 1px solid var(--color-border); }
-.btn-danger { background: var(--color-primary); color: #fff; font-family: var(--font-display); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .delete-modal-body { padding: 22px 18px; color: #777; font-size: 11px; }
 .delete-modal-body strong { color: #ddd; }
 
@@ -284,4 +283,33 @@
   .btn-novo-lancamento { margin-left: 0; }
   .fluxo-modal-body { grid-template-columns: 1fr; }
   .field-span-2 { grid-column: auto; }
+}
+
+/* Lançamentos cancelados: ficam no histórico, mas visualmente "apagados" */
+.fluxo-row-cancelada td { opacity: .45; }
+.fluxo-row-cancelada .fluxo-value { text-decoration: line-through; }
+.fluxo-badge-cancelado {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border: 1px solid rgba(250,204,21,.35);
+  border-radius: 999px;
+  color: var(--color-warning);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  vertical-align: middle;
+}
+
+/* Lançamentos automáticos (OS / estoque) não têm ações manuais */
+.fluxo-tag-automatico {
+  display: inline-block;
+  padding: 2px 7px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  cursor: help;
 }

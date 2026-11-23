@@ -434,3 +434,41 @@
     flex: 1;
   }
 }
+
+/* Exclusão de cliente (mesmo padrão visual da exclusão de veículos) */
+.btn-excluir-cliente:hover { border-color: rgba(204, 0, 0, 0.6); color: var(--color-primary); }
+
+.delete-modal {
+  width: min(430px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  background: #161616;
+  border: 1px solid rgba(255,255,255,.1);
+  box-shadow: 0 22px 70px rgba(0,0,0,.55);
+}
+.delete-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+.delete-modal-header h2 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.delete-modal-body { padding: 20px 22px 5px; color: #999; font-size: 12px; line-height: 1.6; }
+.delete-modal-body strong { color: #ddd; }
+.delete-modal-body span { display: block; margin-top: 5px; color: #777; font-size: 12px; }
+.delete-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 14px 22px;
+  border-top: 1px solid var(--color-border-soft);
+}

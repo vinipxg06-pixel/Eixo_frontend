@@ -174,6 +174,19 @@ label {
   color: var(--color-text-secondary);
 }
 
+/* Ações destrutivas (excluir, cancelar) */
+.btn-danger {
+  background: var(--color-primary);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.btn:disabled { opacity: .55; cursor: not-allowed; filter: none; }
+
 .text-success { color: var(--color-success); }
 .text-warning { color: var(--color-warning); }
 .text-danger { color: var(--color-danger); }
@@ -247,3 +260,115 @@ html {
 *::-webkit-scrollbar-corner {
   background: #101010;
 }
+
+/* Preço unitário das linhas de peças (orçamentos e OS) */
+.part-unit-price { display: block; margin-top: 2px; color: var(--color-text-muted); font-size: 10px; font-weight: 400; line-height: 1.35; }
+.part-unit-price .preco-atual { display: block; color: var(--color-warning); }
+
+/* ============================================================
+   Telas de lista: o painel da lista ocupa toda a altura disponível
+   (mesmo padrão em clientes, veículos, estoque, orçamentos, OS e caixa)
+   ============================================================ */
+.app-main--lista {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.painel-lista {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 320px;
+}
+.painel-lista > .painel-lista-estado {
+  flex: 1;
+  min-height: 0;
+}
+
+/* ============================================================
+   Checkbox com descrição (alinhado à esquerda, texto em uma linha)
+   ============================================================ */
+.campo-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  width: 100%;
+  margin: 14px 0 0;
+  color: var(--color-text-secondary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  letter-spacing: normal;
+  text-transform: none;
+  cursor: pointer;
+}
+.campo-checkbox input[type="checkbox"] {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+/* ============================================================
+   Select com pesquisa (global/js/select-pesquisavel.js)
+   ============================================================ */
+.select-pesquisavel { position: relative; width: 100%; min-width: 0; }
+.select-pesquisavel-nativo { display: none !important; }
+.select-pesquisavel-botao {
+  display: block;
+  width: 100%;
+  min-height: 40px;
+  padding: 10px 34px 10px 12px;
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+  /* seta igual à de um select */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23aaaaaa' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+.select-pesquisavel-botao.vazio { color: var(--color-text-muted); }
+.select-pesquisavel-botao:focus,
+.select-pesquisavel-botao[aria-expanded="true"] { outline: none; border-color: rgba(204, 0, 0, 0.65); }
+.select-pesquisavel-botao:disabled { background-color: #0d0d0d; color: #777; cursor: not-allowed; }
+.select-pesquisavel-botao.select-pesquisavel-invalido { border-color: var(--color-danger); }
+
+.select-pesquisavel-painel {
+  position: fixed;
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  max-height: 300px;
+  background: #121212;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+}
+.select-pesquisavel-busca {
+  flex: 0 0 auto;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  background: #0f0f0f;
+}
+.select-pesquisavel-busca:focus { border-color: var(--color-border); }
+.select-pesquisavel-lista { flex: 1; min-height: 0; overflow-y: auto; list-style: none; padding: 4px 0; }
+.select-pesquisavel-opcao {
+  padding: 8px 12px;
+  color: var(--color-text);
+  cursor: pointer;
+}
+.select-pesquisavel-opcao.destacada,
+.select-pesquisavel-opcao:hover { background: var(--color-surface-hover); }
+.select-pesquisavel-opcao.selecionada { color: var(--color-primary-hover); font-weight: 600; }
+.select-pesquisavel-opcao[aria-disabled="true"] { color: var(--color-text-disabled); cursor: not-allowed; background: none; }
+.select-pesquisavel-sem-resultado { padding: 10px 12px; color: var(--color-text-muted); font-size: 13px; }
