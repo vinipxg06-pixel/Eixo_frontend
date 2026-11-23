@@ -2,6 +2,7 @@ renderMenu('ordens-servico');
 renderHeader('Ordens de Serviço');
 
 const oficinaId = Session.getOficinaId();
+const VALOR_MAXIMO_OS = 1000000; // R$ 1.000.000,00
 
 /** Rótulos da lista padrão de motivos de cancelamento (valores = enum MotivoCancelamentoOrdemServico do backend). */
 const MOTIVOS_CANCELAMENTO = {
@@ -16,6 +17,7 @@ const MOTIVOS_CANCELAMENTO = {
 const MENSAGEM_OS_BLOQUEADA = 'Somente ordens de serviço abertas podem ser alteradas, fechadas ou canceladas.';
 
 const state = {
+  clientesComVeiculo: new Set(), // ids dos clientes que têm ao menos um veículo cadastrado
   ordens: [],
   clientes: [],
   estoque: [],
@@ -89,6 +91,19 @@ const elements = {
 };
 
 initOs();
+
+async function carregarClientesComVeiculo() {
+  const ids = new Set();
+  await Promise.all(state.clientes.map(async (cliente) => {
+    try {
+      const veiculos = await apiRequest(`/oficinas/${oficinaId}/veiculos/${cliente.clienteId}`);
+      if (Array.isArray(veiculos) && veiculos.length > 0) ids.add(String(cliente.clienteId));
+    } catch (error) {
+      console.warn('Não foi possível verificar veículos do cliente', cliente.clienteId, error);
+    }
+  }));
+  state.clientesComVeiculo = ids;
+}
 
 function initOs() {
   if (!Session.exigirLogin()) return;
@@ -306,14 +321,26 @@ function handleActionMenuClick(event) {
   else if (action === 'cancelar') abrirCancelarModal(os);
 }
 
-function preencherClientes() {
+function preencherClientes(apenasAtivos = false) {
   elements.clienteId.innerHTML = '<option value="">Selecione</option>';
-  state.clientes.forEach((cliente) => {
+
+  const lista = apenasAtivos ? clientesAtivos() : state.clientes;
+
+  lista.forEach((cliente) => {
     const option = document.createElement('option');
     option.value = cliente.clienteId;
     option.textContent = cliente.nomeCliente;
     elements.clienteId.appendChild(option);
   });
+}
+
+function clientesAtivos() {
+  return state.clientes.filter((cliente) => normalizeStatusValue(cliente.status) === 'Ativo');
+}
+
+function normalizeStatusValue(status) {
+  const normalized = String(status || 'Ativo').trim().toLowerCase();
+  return normalized === 'inativo' ? 'Inativo' : 'Ativo';
 }
 
 async function handleClienteChange() {
@@ -371,6 +398,9 @@ function abrirModalNovaOs() {
   elements.clienteId.disabled = false;
   elements.veiculoId.disabled = true;
   elements.btnAdicionarPeca.disabled = false;
+
+  preencherClientes(true); // só clientes ativos
+
   renderPecasEditor();
   atualizarResumo();
   abrirModal();
@@ -383,6 +413,7 @@ async function abrirModalEditar(os) {
   }
 
   resetModal();
+  preencherClientes(false);
   state.modoModal = 'editar';
   state.osEmEdicao = os;
   elements.modalTitle.textContent = `Editar ${formatOsNumero(os.idOrdemServico)}`;
@@ -409,6 +440,7 @@ async function abrirModalEditar(os) {
 
 async function abrirModalVisualizar(os) {
   resetModal();
+  preencherClientes(false);
   state.modoModal = 'visualizar';
   state.osEmEdicao = os;
   elements.modalTitle.textContent = `Visualizar ${formatOsNumero(os.idOrdemServico)}`;
@@ -601,6 +633,11 @@ function handlePecasClick(event) {
 
 function handleMoneyInput(event) {
   event.target.value = Formatters.formatCurrencyInput(event.target.value);
+
+  if (Formatters.currencyToNumber(event.target.value) > VALOR_MAXIMO_OS) {
+    event.target.value = Formatters.formatCurrencyBRL(VALOR_MAXIMO_OS);
+  }
+
   clearFieldError('osMaoDeObra');
   atualizarResumo();
 }
@@ -706,6 +743,7 @@ async function salvarOs(event) {
   if (!descricao) { setFieldError('osDescricao', 'Informe a descrição do serviço.'); valid = false; }
   if (descricao.length > 100) { setFieldError('osDescricao', 'A descrição deve ter no máximo 100 caracteres.'); valid = false; }
   if (maoDeObra < 0) { setFieldError('osMaoDeObra', 'A mão de obra não pode ser negativa.'); valid = false; }
+  else if (maoDeObra > VALOR_MAXIMO_OS) { setFieldError('osMaoDeObra', `O valor máximo permitido é ${Formatters.formatCurrencyBRL(VALOR_MAXIMO_OS)}.`); valid = false; }
 
   if (state.pecasCarregadas && !validarPecas()) valid = false;
   if (!valid) return;
@@ -733,6 +771,7 @@ async function salvarOs(event) {
       showToast('Ordem de serviço atualizada com sucesso.', 'success');
     }
 
+    setSaving(false);
     fecharModalOs();
     await atualizarListaAposMutacao();
   } catch (error) {

@@ -13,6 +13,9 @@ const CATEGORIA_LABELS = {
 
 const UNIDADE_LABELS = { UN: 'UN', L: 'L', KG: 'KG', M: 'M', CX: 'CX' };
 
+const PRECO_MAXIMO = 1000000;      // R$ 1.000.000,00
+const QUANTIDADE_MAXIMA = 999999;
+
 const state = {
   pecas: [],
   filtro: '',
@@ -436,9 +439,26 @@ function validatePeca(payload, editando) {
   if (!payload.nomePeca) { setFieldError('nomePeca', 'Informe o nome da peça.'); valid = false; }
   if (!payload.categoria) { setFieldError('categoria', 'Selecione a categoria.'); valid = false; }
   if (!payload.unidadeMedida) { setFieldError('unidadeMedida', 'Selecione a unidade.'); valid = false; }
-  if (!editando && (!Number.isFinite(payload.quantidade) || payload.quantidade < 0)) { setFieldError('quantidade', 'Informe uma quantidade válida.'); valid = false; }
-  if (!Number.isFinite(payload.estoqueMinimo) || payload.estoqueMinimo < 0) { setFieldError('estoqueMinimo', 'Informe um estoque mínimo válido.'); valid = false; }
-  if (!editando && (!Number.isFinite(payload.precoUnitario) || payload.precoUnitario < 0)) { setFieldError('precoUnitario', 'Informe um preço válido.'); valid = false; }
+
+  if (!editando && (!Number.isFinite(payload.quantidade) || payload.quantidade < 0)) {
+    setFieldError('quantidade', 'Informe uma quantidade válida.'); valid = false;
+  } else if (!editando && payload.quantidade > QUANTIDADE_MAXIMA) {
+    setFieldError('quantidade', `A quantidade máxima permitida é ${QUANTIDADE_MAXIMA.toLocaleString('pt-BR')}.`); valid = false;
+  }
+
+  if (!Number.isFinite(payload.estoqueMinimo) || payload.estoqueMinimo < 0) {
+    setFieldError('estoqueMinimo', 'Informe um estoque mínimo válido.'); valid = false;
+  } else if (payload.estoqueMinimo > QUANTIDADE_MAXIMA) {
+    setFieldError('estoqueMinimo', `O estoque mínimo máximo permitido é ${QUANTIDADE_MAXIMA.toLocaleString('pt-BR')}.`); valid = false;
+  }
+
+  // preço só é informado no cadastro; na edição ele é o preço médio, calculado pelas entradas
+  if (!editando && (!Number.isFinite(payload.precoUnitario) || payload.precoUnitario < 0)) {
+    setFieldError('precoUnitario', 'Informe um preço válido.'); valid = false;
+  } else if (!editando && payload.precoUnitario > PRECO_MAXIMO) {
+    setFieldError('precoUnitario', `O preço máximo permitido é ${Formatters.formatCurrencyBRL(PRECO_MAXIMO)}.`); valid = false;
+  }
+
   if (!valid) showToast('Revise os campos obrigatórios.', 'warning');
   return valid;
 }
@@ -475,9 +495,13 @@ async function confirmarEntrada(event) {
   let valid = true;
   if (!Number.isFinite(payload.quantidadeEntrada) || payload.quantidadeEntrada <= 0) {
     setFieldError('quantidadeEntrada', 'Informe uma quantidade maior que zero.'); valid = false;
+  } else if (payload.quantidadeEntrada > QUANTIDADE_MAXIMA) {
+    setFieldError('quantidadeEntrada', `A quantidade máxima permitida é ${QUANTIDADE_MAXIMA.toLocaleString('pt-BR')}.`); valid = false;
   }
   if (!Number.isFinite(payload.precoUnitarioEntrada) || payload.precoUnitarioEntrada < 0) {
     setFieldError('precoUnitarioEntrada', 'Informe um preço válido.'); valid = false;
+  } else if (payload.precoUnitarioEntrada > PRECO_MAXIMO) {
+    setFieldError('precoUnitarioEntrada', `O preço máximo permitido é ${Formatters.formatCurrencyBRL(PRECO_MAXIMO)}.`); valid = false;
   }
   if (!valid) { showToast('Revise os dados da entrada.', 'warning'); return; }
 
