@@ -1,31 +1,28 @@
+/**
+ * Sessão do usuário no navegador.
+ * O login devolve apenas o oficinaId, que é o único dado usado pelas telas.
+ * (Dados do usuário e perfil/permissões ficam para quando a autenticação com token for implementada.)
+ */
 const Session = {
   saveLogin(data) {
-    if (data.usuarioId != null) localStorage.setItem('usuarioId', data.usuarioId);
     if (data.oficinaId != null) localStorage.setItem('oficinaId', data.oficinaId);
-    if (data.nome != null) localStorage.setItem('usuarioNome', data.nome);
-    if (data.perfil != null) localStorage.setItem('usuarioPerfil', data.perfil);
   },
 
-  getUsuarioId() {
-    return localStorage.getItem('usuarioId');
+  /**
+   * Regra: telas internas só abrem com sessão ativa.
+   * Sem sessão, redireciona para o login e retorna false para a tela interromper o carregamento.
+   */
+  exigirLogin() {
+    if (this.getOficinaId()) return true;
+    window.location.replace('../login/login.html');
+    return false;
   },
 
   getOficinaId() {
     return localStorage.getItem('oficinaId');
   },
 
-  getUsuarioNome() {
-    return localStorage.getItem('usuarioNome');
-  },
-
-  getUsuarioPerfil() {
-    return localStorage.getItem('usuarioPerfil');
-  },
-
   clear() {
-    localStorage.removeItem('usuarioId');
     localStorage.removeItem('oficinaId');
-    localStorage.removeItem('usuarioNome');
-    localStorage.removeItem('usuarioPerfil');
   }
 };

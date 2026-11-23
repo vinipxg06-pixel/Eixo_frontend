@@ -8,6 +8,8 @@ const state = {
   filtro: '',
   clienteEmEdicao: null,
   salvando: false,
+  clienteParaExcluir: null,
+  excluindo: false,
   filtroStatus: 'Todos'
 };
 
@@ -32,20 +34,18 @@ const elements = {
   email: document.getElementById('email'),
   statusField: document.getElementById('statusField'),
   status: document.getElementById('statusCliente'),
-  btnSalvar: document.getElementById('btnSalvarCliente')
+  btnSalvar: document.getElementById('btnSalvarCliente'),
+  deleteModal: document.getElementById('deleteClienteModal'),
+  deleteNome: document.getElementById('deleteClienteNome'),
+  btnFecharDelete: document.getElementById('btnFecharDeleteCliente'),
+  btnCancelarDelete: document.getElementById('btnCancelarDeleteCliente'),
+  btnConfirmarDelete: document.getElementById('btnConfirmarDeleteCliente')
 };
 
 initClientes();
 
 function initClientes() {
-  if (!oficinaId) {
-    showToast('Não foi possível identificar a oficina do usuário. Faça login novamente.', 'error');
-    elements.loading.classList.add('hidden');
-    elements.empty.classList.remove('hidden');
-    elements.emptyText.textContent = 'Oficina não identificada na sessão.';
-    elements.btnNovo.disabled = true;
-    return;
-  }
+  if (!Session.exigirLogin()) return;
   elements.btnFiltro.addEventListener('click', alternarFiltroStatus);
   elements.btnNovo.addEventListener('click', abrirModalNovoCliente);
   elements.busca.addEventListener('input', handleBusca);
@@ -56,6 +56,10 @@ function initClientes() {
   elements.telefone.addEventListener('input', aplicarMascaraTelefone);
   elements.list.addEventListener('click', handleListaClick);
   elements.modal.addEventListener('click', handleModalBackdropClick);
+  elements.deleteModal.addEventListener('click', (event) => { if (event.target === elements.deleteModal) fecharDeleteModal(); });
+  elements.btnFecharDelete.addEventListener('click', fecharDeleteModal);
+  elements.btnCancelarDelete.addEventListener('click', fecharDeleteModal);
+  elements.btnConfirmarDelete.addEventListener('click', confirmarExclusao);
   document.addEventListener('keydown', handleEscape);
 
   carregarClientes();
@@ -72,7 +76,7 @@ async function carregarClientes() {
     console.error(error);
     state.clientes = [];
     renderClientes();
-    showToast(getApiErrorMessage(error, 'Não foi possível carregar os clientes.'), 'error');
+    showToast(ApiErros.mensagem(error, 'Não foi possível carregar os clientes.'), 'error');
   } finally {
     setListLoading(false);
   }
@@ -97,7 +101,7 @@ function renderClientes() {
 
     return [
       cliente.nomeCliente,
-      cliente.cpfcnpj,
+      cliente.cpfCnpj,
       cliente.telefone,
       cliente.email,
       cliente.status
@@ -132,7 +136,7 @@ function renderClientes() {
         <div class="cliente-meta">
           <span>${escapeHtml(cliente.telefone ? Formatters.formatPhone(cliente.telefone) : 'Sem telefone')}</span>
           <span class="cliente-meta-separator">·</span>
-          <span class="cliente-meta-document">${escapeHtml(cliente.cpfcnpj ? Formatters.formatCpfCnpj(cliente.cpfcnpj) : 'Sem CPF/CNPJ')}</span>
+          <span class="cliente-meta-document">${escapeHtml(cliente.cpfCnpj ? Formatters.formatCpfCnpj(cliente.cpfCnpj) : 'Sem CPF/CNPJ')}</span>
           ${cliente.email ? `<span class="cliente-meta-separator cliente-email">·</span><span class="cliente-email" title="${escapeHtml(cliente.email)}">${escapeHtml(cliente.email)}</span>` : ''}
         </div>
       </div>
@@ -143,6 +147,11 @@ function renderClientes() {
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 20h9"></path>
             <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+          </svg>
+        </button>
+        <button class="btn-edit-cliente btn-excluir-cliente" type="button" data-action="excluir" data-id="${escapeHtml(cliente.clienteId)}" title="Excluir cliente" aria-label="Excluir ${escapeHtml(cliente.nomeCliente || 'cliente')}">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v5M14 11v5"></path>
           </svg>
         </button>
       </div>
@@ -176,12 +185,28 @@ function alternarFiltroStatus() {
   renderClientes();
 }
 
+/** Campos da API que têm um campo correspondente neste formulário (nome na API → id na tela). */
+const CAMPOS_FORMULARIO = {
+  nomeCliente: 'nomeCliente',
+  cpfCnpj: 'cpfCnpj',
+  telefone: 'telefone',
+  email: 'email',
+  status: 'status'
+};
+
 function handleBusca(event) {
   state.filtro = event.target.value.trim();
   renderClientes();
 }
 
 async function handleListaClick(event) {
+  const botaoExcluir = event.target.closest('[data-action="excluir"]');
+  if (botaoExcluir) {
+    const cliente = state.clientes.find((item) => String(item.clienteId) === String(botaoExcluir.dataset.id));
+    if (cliente) abrirDeleteModal(cliente);
+    return;
+  }
+
   const button = event.target.closest('[data-action="editar"]');
   if (!button) return;
 
@@ -195,7 +220,7 @@ async function handleListaClick(event) {
     abrirModalEditarCliente(cliente);
   } catch (error) {
     console.error(error);
-    showToast(getApiErrorMessage(error, 'Não foi possível carregar os dados do cliente.'), 'error');
+    showToast(ApiErros.mensagem(error, 'Não foi possível carregar os dados do cliente.'), 'error');
   } finally {
     button.disabled = false;
   }
@@ -221,7 +246,7 @@ function abrirModalEditarCliente(cliente) {
   clearFieldErrors();
 
   elements.nome.value = cliente.nomeCliente || '';
-  elements.cpfCnpj.value = Formatters.formatCpfCnpj(cliente.cpfcnpj || '');
+  elements.cpfCnpj.value = Formatters.formatCpfCnpj(cliente.cpfCnpj || '');
   elements.telefone.value = Formatters.formatPhone(cliente.telefone || '');
   elements.email.value = cliente.email || '';
   elements.status.value = normalizeEditableStatus(cliente.status);
@@ -256,8 +281,49 @@ function handleModalBackdropClick(event) {
 }
 
 function handleEscape(event) {
-  if (event.key === 'Escape' && !elements.modal.classList.contains('hidden')) {
-    fecharModalCliente();
+  if (event.key !== 'Escape') return;
+  if (!elements.deleteModal.classList.contains('hidden')) fecharDeleteModal();
+  else if (!elements.modal.classList.contains('hidden')) fecharModalCliente();
+}
+
+function abrirDeleteModal(cliente) {
+  state.clienteParaExcluir = cliente;
+  elements.deleteNome.textContent = cliente.nomeCliente || 'este cliente';
+  elements.deleteModal.classList.remove('hidden');
+  elements.deleteModal.setAttribute('aria-hidden', 'false');
+}
+
+function fecharDeleteModal() {
+  if (state.excluindo) return;
+  elements.deleteModal.classList.add('hidden');
+  elements.deleteModal.setAttribute('aria-hidden', 'true');
+  state.clienteParaExcluir = null;
+}
+
+/** Regra (validada no backend): cliente com veículos, orçamentos ou OS não é excluído — deve ser inativado. */
+async function confirmarExclusao() {
+  const cliente = state.clienteParaExcluir;
+  if (!cliente || state.excluindo) return;
+
+  state.excluindo = true;
+  elements.btnConfirmarDelete.disabled = true;
+  elements.btnConfirmarDelete.textContent = 'Excluindo...';
+
+  try {
+    await apiRequest(`/oficinas/${oficinaId}/clientes/${cliente.clienteId}`, { method: 'DELETE' });
+    state.excluindo = false;
+    fecharDeleteModal();
+    showToast('Cliente excluído com sucesso.', 'success');
+    await carregarClientes();
+  } catch (error) {
+    console.error(error);
+    state.excluindo = false;
+    if (error.status === 409) fecharDeleteModal();
+    showToast(ApiErros.mensagem(error, 'Não foi possível excluir o cliente.'), error.status === 409 ? 'warning' : 'error');
+  } finally {
+    state.excluindo = false;
+    elements.btnConfirmarDelete.disabled = false;
+    elements.btnConfirmarDelete.textContent = 'Excluir';
   }
 }
 
@@ -353,7 +419,7 @@ function validateForm(data) {
 }
 
 function handleSaveError(error) {
-  const fieldErrors = extractValidationErrors(error?.body);
+  const fieldErrors = ApiErros.campos(error, CAMPOS_FORMULARIO);
 
   if (fieldErrors.length > 0) {
     fieldErrors.forEach(({ field, message }) => setFieldError(field, message));
@@ -361,41 +427,7 @@ function handleSaveError(error) {
     return;
   }
 
-  showToast(getApiErrorMessage(error, 'Não foi possível salvar o cliente.'), 'error');
-}
-
-function extractValidationErrors(body) {
-  if (!body) return [];
-
-  if (Array.isArray(body.errors)) {
-    return body.errors
-      .map((item) => ({
-        field: mapBackendField(item.field || item.campo),
-        message: item.defaultMessage || item.message || item.mensagem || 'Valor inválido.'
-      }))
-      .filter((item) => item.field);
-  }
-
-  if (body.errors && typeof body.errors === 'object') {
-    return Object.entries(body.errors)
-      .map(([field, message]) => ({ field: mapBackendField(field), message: String(message) }))
-      .filter((item) => item.field);
-  }
-
-  return [];
-}
-
-function mapBackendField(field) {
-  const fields = {
-    nomeCliente: 'nomeCliente',
-    cpfCnpj: 'cpfCnpj',
-    cpfcnpj: 'cpfCnpj',
-    telefone: 'telefone',
-    email: 'email',
-    status: 'status'
-  };
-
-  return fields[field] || null;
+  showToast(ApiErros.mensagem(error, 'Não foi possível salvar o cliente.'), 'error');
 }
 
 function setFieldError(fieldName, message) {
@@ -484,10 +516,6 @@ function normalizeSearch(value) {
 
 function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
-
-function getApiErrorMessage(error, fallback) {
-  return error?.body?.message || error?.body?.mensagem || error?.message || fallback;
 }
 
 function escapeHtml(value) {

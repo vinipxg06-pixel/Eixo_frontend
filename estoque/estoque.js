@@ -13,9 +13,13 @@ const CATEGORIA_LABELS = {
 
 const UNIDADE_LABELS = { UN: 'UN', L: 'L', KG: 'KG', M: 'M', CX: 'CX' };
 
+const PRECO_MAXIMO = 1000000;      // R$ 1.000.000,00
+const QUANTIDADE_MAXIMA = 999999;
+
 const state = {
   pecas: [],
   filtro: '',
+  filtroSituacao: 'Ativas',
   pecaSelecionada: null,
   pecaEmEdicao: null,
   excluindo: false,
@@ -27,12 +31,16 @@ const elements = {
   count: document.getElementById('estoqueCount'),
   busca: document.getElementById('buscaEstoque'),
   btnNova: document.getElementById('btnNovaPeca'),
+  btnFiltroSituacao: document.getElementById('btnFiltroSituacao'),
   loading: document.getElementById('estoqueLoading'),
   tableWrap: document.getElementById('estoqueTableWrap'),
   tbody: document.getElementById('estoqueTableBody'),
   empty: document.getElementById('estoqueEmpty'),
   emptyText: document.getElementById('estoqueEmptyText'),
   actionMenu: document.getElementById('estoqueActionMenu'),
+  acaoSituacaoIcone: document.getElementById('acaoSituacaoIcone'),
+  acaoSituacaoTitulo: document.getElementById('acaoSituacaoTitulo'),
+  acaoSituacaoDescricao: document.getElementById('acaoSituacaoDescricao'),
 
   pecaModal: document.getElementById('pecaModal'),
   pecaModalTitle: document.getElementById('pecaModalTitle'),
@@ -46,6 +54,9 @@ const elements = {
   quantidadeEditHelp: document.getElementById('quantidadeEditHelp'),
   estoqueMinimo: document.getElementById('estoqueMinimo'),
   precoUnitario: document.getElementById('precoUnitario'),
+  precoUnitarioEditHelp: document.getElementById('precoUnitarioEditHelp'),
+  registrarCompraInicial: document.getElementById('registrarCompraInicial'),
+  registrarCompraInicialWrap: document.getElementById('registrarCompraInicialWrap'),
   btnSalvarPeca: document.getElementById('btnSalvarPeca'),
 
   entradaModal: document.getElementById('entradaModal'),
@@ -54,6 +65,7 @@ const elements = {
   entradaEstoqueAtual: document.getElementById('entradaEstoqueAtual'),
   quantidadeEntrada: document.getElementById('quantidadeEntrada'),
   precoUnitarioEntrada: document.getElementById('precoUnitarioEntrada'),
+  registrarEntradaCaixa: document.getElementById('registrarEntradaCaixa'),
   btnConfirmarEntrada: document.getElementById('btnConfirmarEntrada'),
 
   saidaModal: document.getElementById('saidaModal'),
@@ -61,6 +73,9 @@ const elements = {
   saidaPecaNome: document.getElementById('saidaPecaNome'),
   saidaEstoqueAtual: document.getElementById('saidaEstoqueAtual'),
   quantidadeSaida: document.getElementById('quantidadeSaida'),
+  registrarSaidaCaixa: document.getElementById('registrarSaidaCaixa'),
+  valorVendaWrap: document.getElementById('valorVendaWrap'),
+  valorUnitarioVenda: document.getElementById('valorUnitarioVenda'),
   btnConfirmarSaida: document.getElementById('btnConfirmarSaida'),
 
   deleteModal: document.getElementById('deletePecaModal'),
@@ -71,10 +86,7 @@ const elements = {
 init();
 
 async function init() {
-  if (!oficinaId) {
-    showToast('Oficina não identificada. Faça login novamente.', 'error');
-    return;
-  }
+  if (!Session.exigirLogin()) return;
 
   bindEvents();
   await carregarEstoque();
@@ -87,6 +99,7 @@ function bindEvents() {
   });
 
   elements.btnNova.addEventListener('click', abrirModalNovaPeca);
+  elements.btnFiltroSituacao.addEventListener('click', alternarFiltroSituacao);
   elements.tbody.addEventListener('click', handleTableClick);
   elements.actionMenu.addEventListener('click', handleActionMenuClick);
 
@@ -128,6 +141,8 @@ function bindEvents() {
   bindDecimalInput(elements.quantidadeSaida);
   bindCurrencyInput(elements.precoUnitario);
   bindCurrencyInput(elements.precoUnitarioEntrada);
+  bindCurrencyInput(elements.valorUnitarioVenda);
+  elements.registrarSaidaCaixa.addEventListener('change', atualizarCampoValorVenda);
 }
 
 async function carregarEstoque() {
@@ -140,7 +155,7 @@ async function carregarEstoque() {
     console.error(error);
     state.pecas = [];
     renderEstoque();
-    showToast(getApiErrorMessage(error, 'Não foi possível carregar o estoque.'), 'error');
+    showToast(ApiErros.mensagem(error, 'Não foi possível carregar o estoque.'), 'error');
   } finally {
     setLoading(false);
   }
@@ -153,8 +168,8 @@ function renderEstoque() {
   if (!pecas.length) {
     elements.tableWrap.classList.add('hidden');
     elements.empty.classList.remove('hidden');
-    elements.emptyText.textContent = state.filtro
-      ? 'Nenhum item corresponde à busca.'
+    elements.emptyText.textContent = (state.filtro || state.filtroSituacao !== 'Todas')
+      ? 'Nenhum item corresponde à busca ou ao filtro.'
       : 'Cadastre o primeiro item do estoque.';
     return;
   }
@@ -175,7 +190,7 @@ function buildRow(peca) {
   const codigo = escapeHtml(peca.codigoBarras || '—');
 
   return `
-    <tr>
+    <tr class="${peca.ativa === false ? 'estoque-row-inativa' : ''}">
       <td class="estoque-codigo" title="${codigo}">${codigo}</td>
       <td class="estoque-item">${escapeHtml(peca.nomePeca || '—')}</td>
       <td><span class="estoque-category-badge">${escapeHtml(CATEGORIA_LABELS[peca.categoria] || peca.categoria || '—')}</span></td>
@@ -187,7 +202,7 @@ function buildRow(peca) {
       <td>${formatQuantity(minimo)}</td>
       <td class="estoque-money">${Formatters.formatCurrencyBRL(preco)}</td>
       <td class="estoque-total">${Formatters.formatCurrencyBRL(total)}</td>
-      <td><span class="stock-status ${baixo ? 'low' : 'ok'}">${baixo ? 'Baixo' : 'OK'}</span></td>
+      <td>${renderSituacao(peca, baixo)}</td>
       <td>
         <div class="estoque-row-actions">
           <button class="stock-icon-btn" type="button" data-action="menu" data-id="${peca.estoqueId}" aria-label="Ações de ${escapeHtml(peca.nomePeca)}" title="Movimentar ou editar">
@@ -201,9 +216,30 @@ function buildRow(peca) {
     </tr>`;
 }
 
+function renderSituacao(peca, baixo) {
+  if (peca.ativa === false) return '<span class="stock-status inativa">Inativa</span>';
+  return `<span class="stock-status ${baixo ? 'low' : 'ok'}">${baixo ? 'Baixo' : 'OK'}</span>`;
+}
+
+const FILTROS_SITUACAO = ['Ativas', 'Inativas', 'Todas'];
+
+function alternarFiltroSituacao() {
+  const atual = FILTROS_SITUACAO.indexOf(state.filtroSituacao);
+  state.filtroSituacao = FILTROS_SITUACAO[(atual + 1) % FILTROS_SITUACAO.length];
+  elements.btnFiltroSituacao.textContent = state.filtroSituacao;
+  renderEstoque();
+}
+
+function correspondeSituacao(peca) {
+  if (state.filtroSituacao === 'Ativas') return peca.ativa !== false;
+  if (state.filtroSituacao === 'Inativas') return peca.ativa === false;
+  return true;
+}
+
 function getFilteredPecas() {
-  if (!state.filtro) return state.pecas;
-  return state.pecas.filter((peca) => {
+  const porSituacao = state.pecas.filter(correspondeSituacao);
+  if (!state.filtro) return porSituacao;
+  return porSituacao.filter((peca) => {
     const searchable = normalizeText([
       peca.nomePeca,
       peca.codigoBarras,
@@ -232,9 +268,10 @@ function handleTableClick(event) {
 
 function abrirActionMenu(anchor, peca) {
   state.pecaSelecionada = peca;
+  atualizarAcaoSituacao(peca);
   const rect = anchor.getBoundingClientRect();
   const menuWidth = 205;
-  const menuHeight = 145;
+  const menuHeight = 190;
   let left = rect.right - menuWidth;
   let top = rect.bottom + 6;
   if (left < 8) left = 8;
@@ -244,6 +281,26 @@ function abrirActionMenu(anchor, peca) {
   elements.actionMenu.style.top = `${top}px`;
   elements.actionMenu.classList.remove('hidden');
   elements.actionMenu.setAttribute('aria-hidden', 'false');
+}
+
+function atualizarAcaoSituacao(peca) {
+  const ativa = peca.ativa !== false;
+  elements.acaoSituacaoIcone.textContent = ativa ? '⏸' : '▶';
+  elements.acaoSituacaoTitulo.textContent = ativa ? 'Inativar' : 'Reativar';
+  elements.acaoSituacaoDescricao.textContent = ativa ? 'Ocultar de orçamentos e OS' : 'Voltar a usar em orçamentos e OS';
+}
+
+/** Inativar mantém a peça no histórico; ela só deixa de ser oferecida em novos orçamentos e OS. */
+async function alternarSituacaoPeca(peca) {
+  const acao = peca.ativa === false ? 'reativar' : 'inativar';
+  try {
+    await apiRequest(`/oficinas/${oficinaId}/pecas/${peca.estoqueId}/${acao}`, { method: 'POST' });
+    showToast(acao === 'inativar' ? 'Peça inativada. Ela continua no histórico.' : 'Peça reativada.', 'success');
+    await recarregarEstoque();
+  } catch (error) {
+    console.error(error);
+    showToast(ApiErros.mensagem(error, `Não foi possível ${acao} a peça.`), 'error');
+  }
 }
 
 function fecharActionMenu() {
@@ -259,6 +316,7 @@ function handleActionMenuClick(event) {
 
   if (button.dataset.stockAction === 'entrada') abrirEntradaModal(peca);
   if (button.dataset.stockAction === 'saida') abrirSaidaModal(peca);
+  if (button.dataset.stockAction === 'alternar-situacao') alternarSituacaoPeca(peca);
   if (button.dataset.stockAction === 'editar') abrirModalEditarPeca(peca);
 }
 
@@ -269,8 +327,7 @@ function abrirModalNovaPeca() {
   elements.pecaModalTitle.textContent = 'Novo item';
   elements.pecaModalSubtitle.textContent = 'Cadastre uma nova peça no estoque.';
   elements.btnSalvarPeca.textContent = 'Cadastrar';
-  elements.quantidade.readOnly = false;
-  elements.quantidadeEditHelp.classList.add('hidden');
+  definirCamposControladosPeloEstoque(false);
   elements.quantidade.value = '0';
   elements.estoqueMinimo.value = '0';
   elements.precoUnitario.value = Formatters.formatCurrencyBRL(0);
@@ -291,8 +348,7 @@ function abrirModalEditarPeca(peca) {
   elements.unidadeMedida.value = peca.unidadeMedida || '';
   elements.codigoBarras.value = peca.codigoBarras || '';
   elements.quantidade.value = formatDecimalInput(peca.quantidade);
-  elements.quantidade.readOnly = true;
-  elements.quantidadeEditHelp.classList.remove('hidden');
+  definirCamposControladosPeloEstoque(true);
   elements.estoqueMinimo.value = formatDecimalInput(peca.estoqueMinimo);
   elements.precoUnitario.value = Formatters.formatCurrencyBRL(toNumber(peca.precoUnitario));
 
@@ -304,8 +360,20 @@ function fecharPecaModal() {
   if (state.salvando) return;
   fecharModal(elements.pecaModal);
   state.pecaEmEdicao = null;
-  elements.quantidade.readOnly = false;
+  definirCamposControladosPeloEstoque(false);
   clearFieldErrors();
+}
+
+/**
+ * Regra: na edição, quantidade e preço unitário não são alterados pelo formulário.
+ * A quantidade muda por Entrada/Saída e o preço é o preço médio recalculado a cada Entrada.
+ */
+function definirCamposControladosPeloEstoque(somenteLeitura) {
+  elements.quantidade.readOnly = somenteLeitura;
+  elements.precoUnitario.readOnly = somenteLeitura;
+  elements.quantidadeEditHelp.classList.toggle('hidden', !somenteLeitura);
+  elements.precoUnitarioEditHelp.classList.toggle('hidden', !somenteLeitura);
+  elements.registrarCompraInicialWrap.classList.toggle('hidden', somenteLeitura);
 }
 
 async function salvarPeca(event) {
@@ -313,19 +381,7 @@ async function salvarPeca(event) {
   clearFieldErrors();
 
   const editando = Boolean(state.pecaEmEdicao);
-  const quantidade = editando
-    ? toNumber(state.pecaEmEdicao.quantidade)
-    : parseDecimalBR(elements.quantidade.value);
-
-  const payload = {
-    nomePeca: elements.nomePeca.value.trim(),
-    quantidade,
-    categoria: elements.categoria.value,
-    codigoBarras: elements.codigoBarras.value.trim() || null,
-    estoqueMinimo: parseDecimalBR(elements.estoqueMinimo.value),
-    precoUnitario: Formatters.currencyToNumber(elements.precoUnitario.value),
-    unidadeMedida: elements.unidadeMedida.value
-  };
+  const payload = editando ? montarPayloadEdicao() : montarPayloadCadastro();
 
   if (!validatePeca(payload, editando)) return;
   setPecaSaving(true);
@@ -353,8 +409,30 @@ async function salvarPeca(event) {
   }
 }
 
-const PRECO_MAXIMO = 1000000;      // R$ 1.000.000,00
-const QUANTIDADE_MAXIMA = 999999;
+function montarDadosCadastrais() {
+  return {
+    nomePeca: elements.nomePeca.value.trim(),
+    categoria: elements.categoria.value,
+    codigoBarras: elements.codigoBarras.value.trim() || null,
+    estoqueMinimo: parseDecimalBR(elements.estoqueMinimo.value),
+    unidadeMedida: elements.unidadeMedida.value
+  };
+}
+
+/** Cadastro: além dos dados cadastrais, define a quantidade e o preço iniciais. */
+function montarPayloadCadastro() {
+  return {
+    ...montarDadosCadastrais(),
+    quantidade: parseDecimalBR(elements.quantidade.value),
+    precoUnitario: Formatters.currencyToNumber(elements.precoUnitario.value),
+    registrarMovimentacao: elements.registrarCompraInicial.checked
+  };
+}
+
+/** Edição: apenas dados cadastrais (PecaEstoqueUpdateRequest). */
+function montarPayloadEdicao() {
+  return montarDadosCadastrais();
+}
 
 function validatePeca(payload, editando) {
   let valid = true;
@@ -374,9 +452,10 @@ function validatePeca(payload, editando) {
     setFieldError('estoqueMinimo', `O estoque mínimo máximo permitido é ${QUANTIDADE_MAXIMA.toLocaleString('pt-BR')}.`); valid = false;
   }
 
-  if (!Number.isFinite(payload.precoUnitario) || payload.precoUnitario < 0) {
+  // preço só é informado no cadastro; na edição ele é o preço médio, calculado pelas entradas
+  if (!editando && (!Number.isFinite(payload.precoUnitario) || payload.precoUnitario < 0)) {
     setFieldError('precoUnitario', 'Informe um preço válido.'); valid = false;
-  } else if (payload.precoUnitario > PRECO_MAXIMO) {
+  } else if (!editando && payload.precoUnitario > PRECO_MAXIMO) {
     setFieldError('precoUnitario', `O preço máximo permitido é ${Formatters.formatCurrencyBRL(PRECO_MAXIMO)}.`); valid = false;
   }
 
@@ -409,21 +488,23 @@ async function confirmarEntrada(event) {
 
   const payload = {
     quantidadeEntrada: parseDecimalBR(elements.quantidadeEntrada.value),
-    precoUnitarioEntrada: Formatters.currencyToNumber(elements.precoUnitarioEntrada.value)
+    precoUnitarioEntrada: Formatters.currencyToNumber(elements.precoUnitarioEntrada.value),
+    registrarMovimentacao: elements.registrarEntradaCaixa.checked
   };
 
-let valid = true;
-if (!Number.isFinite(payload.quantidadeEntrada) || payload.quantidadeEntrada <= 0) {
-  setFieldError('quantidadeEntrada', 'Informe uma quantidade maior que zero.'); valid = false;
-} else if (payload.quantidadeEntrada > QUANTIDADE_MAXIMA) {
-  setFieldError('quantidadeEntrada', `A quantidade máxima permitida é ${QUANTIDADE_MAXIMA.toLocaleString('pt-BR')}.`); valid = false;
-}
-if (!Number.isFinite(payload.precoUnitarioEntrada) || payload.precoUnitarioEntrada < 0) {
-  setFieldError('precoUnitarioEntrada', 'Informe um preço válido.'); valid = false;
-} else if (payload.precoUnitarioEntrada > PRECO_MAXIMO) {
-  setFieldError('precoUnitarioEntrada', `O preço máximo permitido é ${Formatters.formatCurrencyBRL(PRECO_MAXIMO)}.`); valid = false;
-}
-if (!valid) { showToast('Revise os dados da entrada.', 'warning'); return; }
+  let valid = true;
+  if (!Number.isFinite(payload.quantidadeEntrada) || payload.quantidadeEntrada <= 0) {
+    setFieldError('quantidadeEntrada', 'Informe uma quantidade maior que zero.'); valid = false;
+  } else if (payload.quantidadeEntrada > QUANTIDADE_MAXIMA) {
+    setFieldError('quantidadeEntrada', `A quantidade máxima permitida é ${QUANTIDADE_MAXIMA.toLocaleString('pt-BR')}.`); valid = false;
+  }
+  if (!Number.isFinite(payload.precoUnitarioEntrada) || payload.precoUnitarioEntrada < 0) {
+    setFieldError('precoUnitarioEntrada', 'Informe um preço válido.'); valid = false;
+  } else if (payload.precoUnitarioEntrada > PRECO_MAXIMO) {
+    setFieldError('precoUnitarioEntrada', `O preço máximo permitido é ${Formatters.formatCurrencyBRL(PRECO_MAXIMO)}.`); valid = false;
+  }
+  if (!valid) { showToast('Revise os dados da entrada.', 'warning'); return; }
+
   setMovementSaving('entrada', true);
   try {
     await apiRequest(`/oficinas/${oficinaId}/pecas/${peca.estoqueId}/adicionar`, {
@@ -447,6 +528,8 @@ function abrirSaidaModal(peca) {
   clearFieldErrors();
   elements.saidaPecaNome.textContent = peca.nomePeca || '—';
   elements.saidaEstoqueAtual.textContent = `${formatQuantity(peca.quantidade)} ${peca.unidadeMedida || ''}`.trim();
+  elements.valorUnitarioVenda.value = Formatters.formatCurrencyBRL(toNumber(peca.precoUnitario));
+  atualizarCampoValorVenda();
   abrirModal(elements.saidaModal);
   setTimeout(() => elements.quantidadeSaida.focus(), 0);
 }
@@ -455,6 +538,11 @@ function fecharSaidaModal() {
   if (state.movimentando) return;
   fecharModal(elements.saidaModal);
   clearFieldErrors();
+}
+
+/** O valor de venda só é pedido quando a retirada será registrada no caixa como venda. */
+function atualizarCampoValorVenda() {
+  elements.valorVendaWrap.classList.toggle('hidden', !elements.registrarSaidaCaixa.checked);
 }
 
 async function confirmarSaida(event) {
@@ -476,10 +564,18 @@ async function confirmarSaida(event) {
     return;
   }
 
+  const registrarMovimentacao = elements.registrarSaidaCaixa.checked;
+  const valorUnitarioVenda = registrarMovimentacao ? Formatters.currencyToNumber(elements.valorUnitarioVenda.value) : null;
+  if (registrarMovimentacao && (!Number.isFinite(valorUnitarioVenda) || valorUnitarioVenda < 0)) {
+    setFieldError('valorUnitarioVenda', 'Informe um valor de venda válido.');
+    showToast('Revise os dados da saída.', 'warning');
+    return;
+  }
+
   setMovementSaving('saida', true);
   try {
     await apiRequest(`/oficinas/${oficinaId}/pecas/${peca.estoqueId}/remover`, {
-      method: 'PATCH', body: JSON.stringify({ quantidade })
+      method: 'PATCH', body: JSON.stringify({ quantidade, registrarMovimentacao, valorUnitarioVenda })
     });
     showToast('Saída registrada com sucesso.', 'success');
     setMovementSaving('saida', false);
@@ -497,29 +593,6 @@ function abrirDeleteModal(peca) {
   state.pecaSelecionada = peca;
   elements.deletePecaNome.textContent = peca.nomePeca || '—';
   abrirModal(elements.deleteModal);
-}
-
-// Traduz erros técnicos (ex.: violação de FK/constraint do banco quando ainda
-// existe quantidade em estoque) em uma mensagem única e compreensível.
-function getDeleteErrorMessage(error, peca) {
-  const raw = String(
-    error?.body?.message || error?.body?.mensagem || error?.message || ''
-  ).toLowerCase();
-
-  const pareceViolacaoDeIntegridade =
-    error?.status === 409 ||
-    raw.includes('foreign key') ||
-    raw.includes('constraint') ||
-    raw.includes('integrity') ||
-    raw.includes('fk_');
-
-  const temQuantidadeEmEstoque = toNumber(peca?.quantidade) > 0;
-
-  if (pareceViolacaoDeIntegridade || temQuantidadeEmEstoque) {
-    return 'Não é possível excluir esta peça pois ainda existe quantidade em estoque. Zere o estoque (saída) antes de excluir.';
-  }
-
-  return getApiErrorMessage(error, 'Não foi possível excluir o item.');
 }
 
 function fecharDeleteModal() {
@@ -541,8 +614,15 @@ async function confirmarExclusao() {
     fecharDeleteModal();
     await recarregarEstoque();
   } catch (error) {
-  console.error(error);
-  showToast(getDeleteErrorMessage(error, peca), 'error');
+    console.error(error);
+    if (error.status === 409) {
+      // Peça com histórico: o backend orienta a inativar em vez de excluir
+      state.excluindo = false;
+      fecharDeleteModal();
+      showToast(ApiErros.mensagem(error, 'Esta peça já foi usada e não pode ser excluída. Inative-a.'), 'warning');
+      return;
+    }
+    showToast(ApiErros.mensagem(error, 'Não foi possível excluir o item.'), 'error');
   } finally {
     state.excluindo = false;
     elements.btnConfirmarDelete.disabled = false;
@@ -557,7 +637,7 @@ async function recarregarEstoque() {
     renderEstoque();
   } catch (error) {
     console.error(error);
-    showToast(getApiErrorMessage(error, 'Não foi possível atualizar o estoque.'), 'error');
+    showToast(ApiErros.mensagem(error, 'Não foi possível atualizar o estoque.'), 'error');
   }
 }
 
@@ -671,36 +751,13 @@ function clearFieldErrors() {
 }
 
 function handleValidationError(error, fallback) {
-  const fieldErrors = extractValidationErrors(error?.body);
+  const fieldErrors = ApiErros.campos(error);
   if (fieldErrors.length) {
     fieldErrors.forEach(({ field, message }) => setFieldError(field, message));
     showToast('Revise os dados informados.', 'warning');
     return;
   }
-  showToast(getApiErrorMessage(error, fallback), 'error');
-}
-
-function extractValidationErrors(body) {
-  if (!body) return [];
-  if (Array.isArray(body.errors)) {
-    return body.errors.map((item) => ({
-      field: item.field || item.campo || '',
-      message: item.defaultMessage || item.message || item.mensagem || 'Valor inválido.'
-    })).filter((item) => item.field);
-  }
-  if (body.errors && typeof body.errors === 'object') {
-    return Object.entries(body.errors).map(([field, message]) => ({ field, message: String(message) }));
-  }
-  return [];
-}
-
-function getApiErrorMessage(error, fallback) {
-  const body = error?.body;
-  if (typeof body === 'string' && body.trim()) return body;
-  if (body?.message) return body.message;
-  if (body?.mensagem) return body.mensagem;
-  if (error?.message && !/^Erro \d+$/.test(error.message)) return error.message;
-  return fallback;
+  showToast(ApiErros.mensagem(error, fallback), 'error');
 }
 
 function pencilIcon() {

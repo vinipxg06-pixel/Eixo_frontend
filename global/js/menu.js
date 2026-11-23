@@ -33,7 +33,7 @@ function renderMenu(activePage) {
   target.innerHTML = `
     <aside class="sidebar">
       <div class="sidebar-logo">
-        <img src="../assets/images/logoeixo.png" alt="EIXO">
+        <img src="../assets/images/logo.png" alt="EIXO">
       </div>
 
       <nav class="sidebar-nav" aria-label="Menu principal">

@@ -56,7 +56,7 @@ loginForm.addEventListener('submit', async (event) => {
     }
 
     if (erro.status === 400 || erro.status === 401 || erro.status === 403) {
-      showToast(erro.body?.message || 'Email ou senha inválidos.', 'error');
+      showToast(ApiErros.mensagem(erro, 'Email ou senha inválidos.'), 'error');
       return;
     }
 

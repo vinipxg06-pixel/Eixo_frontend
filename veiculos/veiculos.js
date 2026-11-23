@@ -32,6 +32,7 @@ const elements = {
   btnSalvar: document.getElementById('btnSalvarVeiculo'),
   form: document.getElementById('veiculoForm'),
   placa: document.getElementById('placa'),
+  placaEditHelp: document.getElementById('placaEditHelp'),
   clienteId: document.getElementById('clienteId'),
   proprietarioEditHelp: document.getElementById('proprietarioEditHelp'),
   marcaId: document.getElementById('marcaId'),
@@ -51,14 +52,7 @@ const elements = {
 initVeiculos();
 
 function initVeiculos() {
-  if (!oficinaId) {
-    elements.loading.classList.add('hidden');
-    elements.empty.classList.remove('hidden');
-    elements.emptyText.textContent = 'Oficina não identificada na sessão.';
-    elements.btnNovo.disabled = true;
-    showToast('Não foi possível identificar a oficina. Faça login novamente.', 'error');
-    return;
-  }
+  if (!Session.exigirLogin()) return;
 
   elements.btnNovo.addEventListener('click', abrirModalNovoVeiculo);
   elements.busca.addEventListener('input', handleBusca);
@@ -107,7 +101,7 @@ async function carregarDadosIniciais() {
     console.error(error);
     state.veiculos = [];
     renderVeiculos();
-    showToast(getApiErrorMessage(error, 'Não foi possível carregar os veículos.'), 'error');
+    showToast(ApiErros.mensagem(error, 'Não foi possível carregar os veículos.'), 'error');
   } finally {
     setListLoading(false);
   }
@@ -179,6 +173,9 @@ function renderCombustivel(value) {
   return `<span class="veiculo-combustivel">${escapeHtml(formatEnumLabel(value))}</span>`;
 }
 
+/** Campos da API que têm um campo correspondente neste formulário (nome na API → id na tela). */
+const CAMPOS_FORMULARIO = { clienteId: 'clienteId', idModelo: 'modeloId', placa: 'placa', combustivel: 'combustivel', cor: 'cor', ano: 'ano', quilometragem: 'quilometragem' };
+
 function handleBusca(event) {
   state.filtro = event.target.value.trim();
   renderVeiculos();
@@ -214,22 +211,9 @@ function preencherClientes(apenasAtivos = false) {
   elements.clienteId.value = atual;
 }
 
-// Só filtra quando a API realmente informar o campo "ativo"; se o campo
-// não vier (ainda não implementado no backend), mantém o comportamento atual
-// em vez de esconder todos os clientes por engano.
+// Regra: veículos só podem ser cadastrados para clientes ativos (validado também no backend).
 function clientesAtivos() {
-  return state.clientes.filter((cliente) => clienteEstaAtivo(cliente));
-}
-
-function clienteEstaAtivo(cliente) {
-  const valor = cliente.ativo ?? cliente.status ?? cliente.situacao ?? cliente.isAtivo;
-
-  if (valor === undefined || valor === null) return true; // campo não veio, não filtra
-  if (typeof valor === 'boolean') return valor;
-  if (typeof valor === 'number') return valor === 1;
-
-  const texto = String(valor).trim().toUpperCase();
-  return ['S', 'SIM', 'ATIVO', 'TRUE', '1'].includes(texto);
+  return state.clientes.filter((cliente) => cliente.status !== 'Inativo');
 }
 
 function preencherMarcas() {
@@ -269,7 +253,7 @@ async function carregarModelosPorMarca(marcaId, modeloSelecionado = null) {
   } catch (error) {
     console.error(error);
     preencherModelos([]);
-    showToast(getApiErrorMessage(error, 'Não foi possível carregar os modelos.'), 'error');
+    showToast(ApiErros.mensagem(error, 'Não foi possível carregar os modelos.'), 'error');
   }
 }
 
@@ -289,6 +273,14 @@ function preencherModelos(modelos, modeloSelecionado = null) {
   if (modeloSelecionado != null) elements.modeloId.value = String(modeloSelecionado);
 }
 
+/** Regra (validada no backend): placa e proprietário não mudam na edição. */
+function definirCamposTravadosNaEdicao(editando) {
+  elements.placa.readOnly = editando;
+  elements.clienteId.disabled = editando;
+  elements.placaEditHelp.classList.toggle('hidden', !editando);
+  elements.proprietarioEditHelp.classList.toggle('hidden', !editando);
+}
+
 function abrirModalNovoVeiculo() {
   state.veiculoEmEdicao = null;
   elements.form.reset();
@@ -298,8 +290,7 @@ function abrirModalNovoVeiculo() {
 
   elements.modalTitle.textContent = 'Novo veículo';
   elements.btnSalvar.textContent = 'Adicionar';
-  elements.clienteId.disabled = false;
-  elements.proprietarioEditHelp.classList.add('hidden');
+  definirCamposTravadosNaEdicao(false);
   elements.combustivel.value = 'Flex';
 
   abrirModalVeiculo();
@@ -320,8 +311,7 @@ async function abrirModalEditarVeiculo(veiculo) {
 
   const cliente = state.clientes.find((item) => item.nomeCliente === veiculo.nomeCliente);
   elements.clienteId.value = cliente?.clienteId ? String(cliente.clienteId) : '';
-  elements.clienteId.disabled = true;
-  elements.proprietarioEditHelp.classList.remove('hidden');
+  definirCamposTravadosNaEdicao(true);
 
   const marcaId = veiculo.modelo?.marca?.idMarca;
   const modeloId = veiculo.modelo?.idModelo;
@@ -373,15 +363,17 @@ async function salvarVeiculo(event) {
 
   try {
     if (editando) {
-      await apiRequest(`/oficinas/${oficinaId}/veiculos/${state.veiculoEmEdicao.idVeiculo}/${modeloId}`, {
+      // Edição: placa e proprietário não vão no corpo (não podem ser alterados)
+      const { placa, ...dadosEditaveis } = payload;
+      await apiRequest(`/oficinas/${oficinaId}/veiculos/${state.veiculoEmEdicao.idVeiculo}`, {
         method: 'PUT',
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...dadosEditaveis, idModelo: Number(modeloId) })
       });
       showToast('Veículo atualizado com sucesso.', 'success');
     } else {
-      await apiRequest(`/oficinas/${oficinaId}/veiculos/${clienteId}/${modeloId}`, {
+      await apiRequest(`/oficinas/${oficinaId}/veiculos`, {
         method: 'POST',
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...payload, clienteId: Number(clienteId), idModelo: Number(modeloId) })
       });
       showToast('Veículo cadastrado com sucesso.', 'success');
     }
@@ -404,18 +396,20 @@ async function recarregarVeiculos() {
     renderVeiculos();
   } catch (error) {
     console.error(error);
-    showToast(getApiErrorMessage(error, 'Não foi possível atualizar a lista de veículos.'), 'error');
+    showToast(ApiErros.mensagem(error, 'Não foi possível atualizar a lista de veículos.'), 'error');
   }
 }
 
 const QUILOMETRAGEM_MAXIMA = 9999999; // 9.999.999 km
-const ANOS_LIMITE_FUTURO = 3; // não permite cadastrar veículo com ano > ano atual + 3
+const FORMATO_PLACA = /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/; // padrão antigo (ABC1234) e Mercosul (ABC1D23)
+const ANOS_LIMITE_FUTURO = 1; // ano-modelo: no máximo o próximo ano (mesma regra do backend)
 
 function validateForm(payload, clienteId, modeloId, editando) {
   clearFieldErrors();
   let valid = true;
 
   if (!payload.placa) { setFieldError('placa', 'Informe a placa.'); valid = false; }
+  else if (!FORMATO_PLACA.test(payload.placa)) { setFieldError('placa', 'Placa inválida. Use ABC-1234 ou ABC-1D23.'); valid = false; }
   if (!editando && !clienteId) { setFieldError('clienteId', 'Selecione o proprietário.'); valid = false; }
   if (!elements.marcaId.value) { setFieldError('marcaId', 'Selecione a marca.'); valid = false; }
   if (!modeloId) { setFieldError('modeloId', 'Selecione o modelo.'); valid = false; }
@@ -449,37 +443,13 @@ function validateForm(payload, clienteId, modeloId, editando) {
 }
 
 function handleSaveError(error) {
-  const fieldErrors = extractValidationErrors(error?.body);
+  const fieldErrors = ApiErros.campos(error, CAMPOS_FORMULARIO);
   if (fieldErrors.length) {
     fieldErrors.forEach(({ field, message }) => setFieldError(field, message));
     showToast('Revise os dados informados.', 'warning');
     return;
   }
-  showToast(getApiErrorMessage(error, 'Não foi possível salvar o veículo.'), 'error');
-}
-
-function extractValidationErrors(body) {
-  if (!body) return [];
-
-  if (Array.isArray(body.errors)) {
-    return body.errors.map((item) => ({
-      field: mapBackendField(item.field || item.campo),
-      message: item.defaultMessage || item.message || item.mensagem || 'Valor inválido.'
-    })).filter((item) => item.field);
-  }
-
-  if (body.errors && typeof body.errors === 'object') {
-    return Object.entries(body.errors).map(([field, message]) => ({
-      field: mapBackendField(field),
-      message: String(message)
-    })).filter((item) => item.field);
-  }
-
-  return [];
-}
-
-function mapBackendField(field) {
-  return ({ placa: 'placa', combustivel: 'combustivel', cor: 'cor', ano: 'ano', quilometragem: 'quilometragem' })[field] || null;
+  showToast(ApiErros.mensagem(error, 'Não foi possível salvar o veículo.'), 'error');
 }
 
 function setFieldError(fieldName, message) {
@@ -562,32 +532,12 @@ async function excluirVeiculo() {
     await recarregarVeiculos();
   } catch (error) {
     console.error(error);
-    showToast(getDeleteErrorMessage(error), 'error');
+    // Regra (validada no backend): veículo com orçamentos ou OS não pode ser excluído (409 com a explicação)
+    showToast(ApiErros.mensagem(error, 'Não foi possível excluir o veículo.'), error.status === 409 ? 'warning' : 'error');
   } finally {
     state.excluindo = false;
     restaurarDeleteButtons();
   }
-}
-
-// Traduz erros técnicos (ex.: violação de FK do banco) em uma mensagem
-// única e compreensível para o usuário, em vez do dump de SQL do backend.
-function getDeleteErrorMessage(error) {
-  const raw = String(
-    error?.body?.message || error?.body?.mensagem || error?.message || ''
-  ).toLowerCase();
-
-  const pareceViolacaoDeIntegridade =
-    error?.status === 409 ||
-    raw.includes('foreign key') ||
-    raw.includes('constraint') ||
-    raw.includes('integrity') ||
-    raw.includes('fk_');
-
-  if (pareceViolacaoDeIntegridade) {
-    return 'Não é possível excluir este veículo pois existem orçamentos vinculados a ele. Cancele ou finalize os orçamentos antes de excluir.';
-  }
-
-  return getApiErrorMessage(error, 'Não foi possível excluir o veículo.');
 }
 
 function restaurarDeleteButtons() {
@@ -642,10 +592,6 @@ function formatEnumLabel(value) {
 
 function normalizeSearch(value) {
   return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-}
-
-function getApiErrorMessage(error, fallback) {
-  return error?.body?.message || error?.body?.mensagem || error?.message || fallback;
 }
 
 function escapeHtml(value) {

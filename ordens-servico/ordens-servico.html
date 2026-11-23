@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EIXO — Ordens de Serviço</title>
+  <title>EIXO | Ordens de Serviço</title>
+  
+  <link rel="icon" type="image/png" href="../assets/images/icon.png" >
   <link rel="stylesheet" href="../global/css/global.css">
   <link rel="stylesheet" href="../global/css/menu.css">
   <link rel="stylesheet" href="../global/css/toast.css">
@@ -16,7 +18,7 @@
     <div class="app-content">
       <header data-header></header>
 
-      <main class="app-main os-page">
+      <main class="app-main os-page app-main--lista">
         <div class="os-topbar">
           <div>
             <h1 class="page-title">ORDENS DE SERVIÇO</h1>
@@ -35,8 +37,8 @@
           </div>
         </div>
 
-        <section class="os-table-shell">
-          <div id="osLoading" class="os-loading">
+        <section class="os-table-shell painel-lista">
+          <div id="osLoading" class="os-loading painel-lista-estado">
             <div class="loading-spinner"></div>
             <span>Carregando ordens de serviço...</span>
           </div>
@@ -58,7 +60,7 @@
             </table>
           </div>
 
-          <div id="osEmpty" class="os-empty hidden">
+          <div id="osEmpty" class="os-empty painel-lista-estado hidden">
             <strong>Nenhuma ordem de serviço</strong>
             <span id="osEmptyText">Crie a primeira ordem de serviço da oficina.</span>
           </div>
@@ -81,6 +83,10 @@
       <span class="os-action-menu-icon close-os">✓</span>
       <span><strong>Fechar OS</strong><small>Finalizar a ordem de serviço</small></span>
     </button>
+    <button type="button" data-os-action="cancelar" role="menuitem">
+      <span class="os-action-menu-icon cancel-os">✕</span>
+      <span><strong>Cancelar OS</strong><small>Devolver as peças ao estoque</small></span>
+    </button>
   </div>
 
   <!-- Modal criação / edição / visualização -->
@@ -91,7 +97,7 @@
           <span class="os-modal-eyebrow">ORDEM DE SERVIÇO</span>
           <h2 id="osModalTitle">Nova ordem de serviço</h2>
         </div>
-        <button class="os-modal-close" id="btnFecharOsModal" type="button" aria-label="Fechar">×</button>
+        <button class="modal-close" id="btnFecharOsModal" type="button" aria-label="Fechar">×</button>
       </header>
 
       <form id="osForm">
@@ -99,7 +105,7 @@
           <div class="os-grid">
             <div class="os-field">
               <label for="osClienteId">Cliente *</label>
-              <select id="osClienteId">
+              <select id="osClienteId" data-pesquisavel>
                 <option value="">Selecione</option>
               </select>
               <small class="field-error" data-error-for="osClienteId"></small>
@@ -107,7 +113,7 @@
 
             <div class="os-field">
               <label for="osVeiculoId">Veículo *</label>
-              <select id="osVeiculoId" disabled>
+              <select id="osVeiculoId" disabled data-pesquisavel>
                 <option value="">Selecione um cliente</option>
               </select>
               <small class="field-error" data-error-for="osVeiculoId"></small>
@@ -150,6 +156,8 @@
             <div><span>Peças</span><strong id="osResumoPecas">R$ 0,00</strong></div>
             <div><span>Mão de obra</span><strong id="osResumoMaoDeObra">R$ 0,00</strong></div>
             <div class="os-summary-total"><span>Total</span><strong id="osResumoTotal">R$ 0,00</strong></div>
+            <div class="os-summary-aprovado hidden" id="osResumoAprovadoLinha"><span>Aprovado no orçamento</span><strong id="osResumoAprovado">R$ 0,00</strong></div>
+            <p class="os-aviso-divergencia hidden" id="osAvisoDivergencia"></p>
           </section>
         </div>
 
@@ -169,15 +177,55 @@
           <span class="os-modal-eyebrow">CONFIRMAÇÃO</span>
           <h2 id="fecharOsTitle">Fechar ordem de serviço</h2>
         </div>
-        <button class="os-modal-close" id="btnFecharConfirmModal" type="button" aria-label="Fechar">×</button>
+        <button class="modal-close" id="btnFecharConfirmModal" type="button" aria-label="Fechar">×</button>
       </header>
       <div class="os-confirm-body">
         <p id="fecharOsTexto"></p>
-        <small>Depois de fechada, a OS ficará bloqueada para edição e alteração de peças.</small>
+        <div class="os-fechar-pecas hidden" id="fecharOsPecas">
+          <p>Confirme as peças usadas. O que não foi usado volta ao estoque e não é cobrado.</p>
+          <div class="os-fechar-pecas-cabecalho"><span>Peça</span><span>Lançada</span><span>Usada</span></div>
+          <div id="fecharOsPecasLista"></div>
+        </div>
+        <div class="os-fechar-total" id="fecharOsTotalLinha"><span>Total a cobrar</span><strong id="fecharOsTotal">R$ 0,00</strong></div>
+        <div class="os-sem-custo hidden" id="fecharOsSemCusto">
+          <p>Esta OS está <strong>sem valor (R$ 0,00)</strong>. Nenhum lançamento será gerado no caixa.</p>
+          <label class="campo-checkbox">
+            <input type="checkbox" id="confirmarSemCusto">
+            Confirmo que é um serviço sem custo (ex.: retorno de garantia)
+          </label>
+        </div>
+        <small>Depois de fechada, a OS fica bloqueada e não pode ser reaberta.</small>
       </div>
       <footer class="os-modal-footer">
         <button class="btn btn-secondary" id="btnCancelarFechamento" type="button">CANCELAR</button>
         <button class="btn btn-primary" id="btnConfirmarFechamento" type="button">FECHAR OS</button>
+      </footer>
+    </section>
+  </div>
+
+  <!-- Cancelamento -->
+  <div class="os-modal-backdrop hidden" id="cancelarOsModal" aria-hidden="true">
+    <section class="os-modal os-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="cancelarOsTitle">
+      <header class="os-modal-header">
+        <div>
+          <span class="os-modal-eyebrow">CONFIRMAÇÃO</span>
+          <h2 id="cancelarOsTitle">Cancelar ordem de serviço</h2>
+        </div>
+        <button class="modal-close" id="btnFecharCancelarModal" type="button" aria-label="Fechar">×</button>
+      </header>
+      <div class="os-confirm-body">
+        <p id="cancelarOsTexto"></p>
+        <div class="os-field">
+          <label for="cancelarOsMotivo">Motivo *</label>
+          <select id="cancelarOsMotivo">
+            <option value="">Selecione</option>
+          </select>
+        </div>
+        <small>Todas as peças da OS voltam ao estoque e nada é lançado no caixa. Uma OS cancelada não pode ser reaberta.</small>
+      </div>
+      <footer class="os-modal-footer">
+        <button class="btn btn-secondary" id="btnVoltarCancelamento" type="button">VOLTAR</button>
+        <button class="btn btn-danger" id="btnConfirmarCancelamento" type="button" disabled>CANCELAR OS</button>
       </footer>
     </section>
   </div>
@@ -189,6 +237,8 @@
   <script src="../global/js/layout.js"></script>
   <script src="../global/js/toast.js"></script>
   <script src="../global/js/formatters.js"></script>
+  <script src="../global/js/select-pesquisavel.js"></script>
+  <script src="../global/js/precificacao-pecas.js"></script>
   <script src="./ordens-servico.js"></script>
 </body>
 </html>

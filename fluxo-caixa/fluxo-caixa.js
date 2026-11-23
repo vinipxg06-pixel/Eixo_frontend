@@ -22,7 +22,7 @@ const categoryLabels = Object.fromEntries(CATEGORIAS);
 let movimentacoes = [];
 let filtroAtual = 'Todos';
 let movimentacaoEditando = null;
-let movimentacaoExcluindo = null;
+let movimentacaoCancelando = null;
 
 const el = {
   subtitle: document.getElementById('fluxoSubtitle'),
@@ -49,11 +49,11 @@ const el = {
   fecharModal: document.getElementById('btnFecharLancamentoModal'),
   cancelarModal: document.getElementById('btnCancelarLancamento'),
 
-  deleteModal: document.getElementById('deleteLancamentoModal'),
-  deleteDescricao: document.getElementById('deleteLancamentoDescricao'),
-  fecharDelete: document.getElementById('btnFecharDeleteLancamento'),
-  cancelarDelete: document.getElementById('btnCancelarDeleteLancamento'),
-  confirmarDelete: document.getElementById('btnConfirmarDeleteLancamento')
+  cancelModal: document.getElementById('cancelarLancamentoModal'),
+  cancelDescricao: document.getElementById('cancelarLancamentoDescricao'),
+  fecharCancel: document.getElementById('btnFecharCancelarLancamento'),
+  voltarCancel: document.getElementById('btnVoltarCancelarLancamento'),
+  confirmarCancel: document.getElementById('btnConfirmarCancelarLancamento')
 };
 
 function escapeHtml(value) {
@@ -88,12 +88,19 @@ function preencherCategorias() {
     .join('');
 }
 
+/** Regra: lançamentos cancelados ficam no histórico, mas não entram em nenhum total. */
+function lancamentosContabilizados() {
+  return movimentacoes.filter(m => !m.cancelada);
+}
+
 function atualizarResumo() {
-  const entradas = movimentacoes
+  const contabilizados = lancamentosContabilizados();
+
+  const entradas = contabilizados
     .filter(m => m.tipo === 'Entrada')
     .reduce((acc, m) => acc + (Number(m.valor) || 0), 0);
 
-  const saidas = movimentacoes
+  const saidas = contabilizados
     .filter(m => m.tipo === 'Saida')
     .reduce((acc, m) => acc + (Number(m.valor) || 0), 0);
 
@@ -111,6 +118,24 @@ function atualizarResumo() {
 function movimentacoesFiltradas() {
   if (filtroAtual === 'Todos') return movimentacoes;
   return movimentacoes.filter(m => m.tipo === filtroAtual);
+}
+
+/** Só lançamentos manuais e ativos podem ser editados ou cancelados (regra validada também no backend). */
+function renderAcoes(m) {
+  if (m.automatica) {
+    return '<span class="fluxo-tag-automatico" title="Gerado pelo sistema (OS ou estoque). Não pode ser alterado manualmente.">Automático</span>';
+  }
+  if (m.cancelada) return '';
+
+  return `
+          <div class="fluxo-row-actions">
+            <button class="fluxo-icon-btn" type="button" data-action="edit" data-id="${m.idMovimentacao}" aria-label="Editar lançamento" title="Editar">
+              <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg>
+            </button>
+            <button class="fluxo-icon-btn delete" type="button" data-action="cancel" data-id="${m.idMovimentacao}" aria-label="Cancelar lançamento" title="Cancelar">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="m5.6 5.6 12.8 12.8"></path></svg>
+            </button>
+          </div>`;
 }
 
 function renderTabela() {
@@ -135,33 +160,22 @@ function renderTabela() {
     const origemTitle = m.estoqueId ? `Movimentação vinculada ao estoque #${m.estoqueId}` : '';
 
     return `
-      <tr data-id="${m.idMovimentacao}">
+      <tr data-id="${m.idMovimentacao}" class="${m.cancelada ? 'fluxo-row-cancelada' : ''}">
         <td class="fluxo-date">${escapeHtml(formatDate(m.dataMovimentacao))}</td>
-        <td class="fluxo-description" title="${escapeHtml(origemTitle || m.descricao)}">${escapeHtml(m.descricao)}</td>
+        <td class="fluxo-description" title="${escapeHtml(origemTitle || m.descricao)}">${escapeHtml(m.descricao)}${m.cancelada ? ' <span class="fluxo-badge-cancelado">Cancelado</span>' : ''}</td>
         <td><span class="fluxo-category" title="${escapeHtml(categoryLabel(m.categoria))}">${escapeHtml(categoryLabel(m.categoria))}</span></td>
         <td class="fluxo-os ${m.ordemServicoId ? 'linked' : ''}">${escapeHtml(osText)}</td>
         <td><span class="fluxo-type ${entrada ? 'entrada' : 'saida'}">${entrada ? '↑ Entrada' : '↓ Saída'}</span></td>
         <td class="fluxo-value ${entrada ? 'entrada' : 'saida'}">${escapeHtml(signedCurrency(m))}</td>
         <td class="fluxo-actions-col">
-          <div class="fluxo-row-actions">
-            <button class="fluxo-icon-btn" type="button" data-action="edit" data-id="${m.idMovimentacao}" aria-label="Editar lançamento" title="Editar">
-              <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg>
-            </button>
-            <button class="fluxo-icon-btn delete" type="button" data-action="delete" data-id="${m.idMovimentacao}" aria-label="Excluir lançamento" title="Excluir">
-              <svg viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v5M14 11v5"></path></svg>
-            </button>
-          </div>
+          ${renderAcoes(m)}
         </td>
       </tr>`;
   }).join('');
 }
 
 async function carregarMovimentacoes() {
-  if (!oficinaId) {
-    el.loading.classList.add('hidden');
-    showToast('Oficina não encontrada na sessão. Faça login novamente.', 'error');
-    return;
-  }
+  if (!Session.exigirLogin()) return;
 
   try {
     movimentacoes = await apiRequest(`/oficinas/${oficinaId}/fluxo-caixa`) || [];
@@ -171,7 +185,7 @@ async function carregarMovimentacoes() {
     el.empty.classList.remove('hidden');
     el.empty.querySelector('strong').textContent = 'Erro ao carregar';
     el.empty.querySelector('span').textContent = 'Não foi possível carregar o fluxo de caixa.';
-    showToast(error.message || 'Erro ao carregar o fluxo de caixa.', 'error');
+    showToast(ApiErros.mensagem(error, 'Erro ao carregar o fluxo de caixa.'), 'error');
   }
 }
 
@@ -264,44 +278,44 @@ if (valor > VALOR_MAXIMO) {
     showToast(editando ? 'Lançamento atualizado com sucesso.' : 'Lançamento registrado com sucesso.', 'success');
     await carregarMovimentacoes();
   } catch (error) {
-    showToast(error.message || 'Não foi possível salvar o lançamento.', 'error');
+    showToast(ApiErros.mensagem(error, 'Não foi possível salvar o lançamento.'), 'error');
   } finally {
     el.salvar.disabled = false;
     el.salvar.textContent = originalText;
   }
 }
 
-function abrirDelete(movimentacao) {
-  movimentacaoExcluindo = movimentacao;
-  el.deleteDescricao.textContent = movimentacao.descricao || 'este lançamento';
-  el.deleteModal.classList.remove('hidden');
-  el.deleteModal.setAttribute('aria-hidden', 'false');
+function abrirCancelamento(movimentacao) {
+  movimentacaoCancelando = movimentacao;
+  el.cancelDescricao.textContent = movimentacao.descricao || 'este lançamento';
+  el.cancelModal.classList.remove('hidden');
+  el.cancelModal.setAttribute('aria-hidden', 'false');
 }
 
-function fecharDelete() {
-  el.deleteModal.classList.add('hidden');
-  el.deleteModal.setAttribute('aria-hidden', 'true');
-  movimentacaoExcluindo = null;
+function fecharCancelamento() {
+  el.cancelModal.classList.add('hidden');
+  el.cancelModal.setAttribute('aria-hidden', 'true');
+  movimentacaoCancelando = null;
 }
 
-async function confirmarDelete() {
-  if (!movimentacaoExcluindo) return;
+async function confirmarCancelamento() {
+  if (!movimentacaoCancelando) return;
 
-  el.confirmarDelete.disabled = true;
-  el.confirmarDelete.textContent = 'Excluindo...';
+  el.confirmarCancel.disabled = true;
+  el.confirmarCancel.textContent = 'Cancelando...';
 
   try {
-    await apiRequest(`/oficinas/${oficinaId}/fluxo-caixa/${movimentacaoExcluindo.idMovimentacao}`, {
-      method: 'DELETE'
+    await apiRequest(`/oficinas/${oficinaId}/fluxo-caixa/${movimentacaoCancelando.idMovimentacao}/cancelar`, {
+      method: 'POST'
     });
-    fecharDelete();
-    showToast('Lançamento excluído com sucesso.', 'success');
+    fecharCancelamento();
+    showToast('Lançamento cancelado. Ele continua no histórico, mas não conta mais nos totais.', 'success');
     await carregarMovimentacoes();
   } catch (error) {
-    showToast(error.message || 'Não foi possível excluir o lançamento.', 'error');
+    showToast(ApiErros.mensagem(error, 'Não foi possível cancelar o lançamento.'), 'error');
   } finally {
-    el.confirmarDelete.disabled = false;
-    el.confirmarDelete.textContent = 'Excluir';
+    el.confirmarCancel.disabled = false;
+    el.confirmarCancel.textContent = 'Cancelar lançamento';
   }
 }
 
@@ -334,24 +348,24 @@ el.tableBody.addEventListener('click', event => {
   if (!movimentacao) return;
 
   if (button.dataset.action === 'edit') abrirModal(movimentacao);
-  if (button.dataset.action === 'delete') abrirDelete(movimentacao);
+  if (button.dataset.action === 'cancel') abrirCancelamento(movimentacao);
 });
 
-el.fecharDelete.addEventListener('click', fecharDelete);
-el.cancelarDelete.addEventListener('click', fecharDelete);
-el.confirmarDelete.addEventListener('click', confirmarDelete);
+el.fecharCancel.addEventListener('click', fecharCancelamento);
+el.voltarCancel.addEventListener('click', fecharCancelamento);
+el.confirmarCancel.addEventListener('click', confirmarCancelamento);
 
-[el.modal, el.deleteModal].forEach(modal => {
+[el.modal, el.cancelModal].forEach(modal => {
   modal.addEventListener('click', event => {
     if (event.target !== modal) return;
     if (modal === el.modal) fecharModal();
-    if (modal === el.deleteModal) fecharDelete();
+    if (modal === el.cancelModal) fecharCancelamento();
   });
 });
 
 document.addEventListener('keydown', event => {
   if (event.key !== 'Escape') return;
-  if (!el.deleteModal.classList.contains('hidden')) fecharDelete();
+  if (!el.cancelModal.classList.contains('hidden')) fecharCancelamento();
   else if (!el.modal.classList.contains('hidden')) fecharModal();
 });
 

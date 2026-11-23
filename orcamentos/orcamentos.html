@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EIXO — Orçamentos</title>
+  <title>EIXO | Orçamentos</title>
+  
+  <link rel="icon" type="image/png" href="../assets/images/icon.png" >
   <link rel="stylesheet" href="../global/css/global.css">
   <link rel="stylesheet" href="../global/css/menu.css">
   <link rel="stylesheet" href="../global/css/toast.css">
@@ -16,7 +18,7 @@
     <div class="app-content">
       <header data-header></header>
 
-      <main class="app-main orcamentos-page">
+      <main class="app-main orcamentos-page app-main--lista">
         <div class="orcamentos-topbar">
           <div>
             <h1 class="page-title">ORÇAMENTOS</h1>
@@ -35,8 +37,8 @@
           </div>
         </div>
 
-        <section class="orcamentos-table-shell">
-          <div id="orcamentosLoading" class="orcamentos-loading">
+        <section class="orcamentos-table-shell painel-lista">
+          <div id="orcamentosLoading" class="orcamentos-loading painel-lista-estado">
             <div class="loading-spinner"></div>
             <span>Carregando orçamentos...</span>
           </div>
@@ -58,7 +60,7 @@
             </table>
           </div>
 
-          <div id="orcamentosEmpty" class="orcamentos-empty hidden">
+          <div id="orcamentosEmpty" class="orcamentos-empty painel-lista-estado hidden">
             <strong>Nenhum orçamento</strong>
             <span id="orcamentosEmptyText">Crie o primeiro orçamento da oficina.</span>
           </div>
@@ -99,7 +101,7 @@
           <span class="budget-modal-eyebrow">ORÇAMENTO</span>
           <h2 id="orcamentoModalTitle">Novo orçamento</h2>
         </div>
-        <button class="budget-modal-close" id="btnFecharOrcamentoModal" type="button" aria-label="Fechar">×</button>
+        <button class="modal-close" id="btnFecharOrcamentoModal" type="button" aria-label="Fechar">×</button>
       </header>
 
       <form id="orcamentoForm">
@@ -107,7 +109,7 @@
           <div class="budget-grid">
             <div class="budget-field">
               <label for="clienteId">Cliente *</label>
-              <select id="clienteId">
+              <select id="clienteId" data-pesquisavel>
                 <option value="">Selecione</option>
               </select>
               <small class="field-error" data-error-for="clienteId"></small>
@@ -115,7 +117,7 @@
 
             <div class="budget-field">
               <label for="veiculoId">Veículo *</label>
-              <select id="veiculoId" disabled>
+              <select id="veiculoId" disabled data-pesquisavel>
                 <option value="">Selecione um cliente</option>
               </select>
               <small class="field-error" data-error-for="veiculoId"></small>
@@ -176,7 +178,7 @@
           <span class="budget-modal-eyebrow" id="acaoOrcamentoEyebrow">CONFIRMAÇÃO</span>
           <h2 id="acaoOrcamentoTitle">Confirmar ação</h2>
         </div>
-        <button class="budget-modal-close" id="btnFecharAcaoModal" type="button" aria-label="Fechar">×</button>
+        <button class="modal-close" id="btnFecharAcaoModal" type="button" aria-label="Fechar">×</button>
       </header>
       <div class="budget-confirm-body">
         <p id="acaoOrcamentoTexto"></p>
@@ -195,6 +197,8 @@
   <script src="../global/js/layout.js"></script>
   <script src="../global/js/toast.js"></script>
   <script src="../global/js/formatters.js"></script>
+  <script src="../global/js/select-pesquisavel.js"></script>
+  <script src="../global/js/precificacao-pecas.js"></script>
   <script src="./orcamentos.js"></script>
 </body>
 </html>

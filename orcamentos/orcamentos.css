@@ -10,8 +10,7 @@
 .orcamentos-subtitle {
   margin-top: 4px;
   color: var(--color-text-muted);
-  font-size: 10px;
-}
+  font-size: 12px;}
 
 .orcamentos-actions {
   display: flex;
@@ -47,8 +46,7 @@
   border: 0;
   background: transparent;
   color: #aaa;
-  font-size: 11px;
-}
+  font-size: 12px;}
 
 .orcamentos-search-wrap input:focus { border: 0; }
 .btn-novo-orcamento {
@@ -89,8 +87,7 @@
   border-bottom: 1px solid var(--color-border);
   color: var(--color-text-secondary);
   font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 500;
+  font-size: 12px;  font-weight: 500;
   letter-spacing: .12em;
   text-align: left;
   text-transform: uppercase;
@@ -102,8 +99,7 @@
   padding: 0 14px;
   border-bottom: 1px solid rgba(255,255,255,.045);
   color: #888;
-  font-size: 10.5px;
-  vertical-align: middle;
+  font-size: 12px;  vertical-align: middle;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -119,8 +115,8 @@
   letter-spacing: .05em;
 }
 .orcamento-cliente { color: #ddd !important; font-weight: 500; }
-.orcamento-veiculo { color: #888 !important; font-family: var(--font-mono); font-size: 9px !important; }
-.orcamento-data { color: #666 !important; font-family: var(--font-mono); font-size: 9px !important; }
+.orcamento-veiculo { color: #888 !important; font-family: var(--font-mono); font-size: 11px !important; }
+.orcamento-data { color: #888 !important; font-family: var(--font-mono); font-size: 11px !important; }
 .orcamento-total { color: #f2f2f2 !important; font-family: var(--font-mono); font-weight: 600; }
 
 .orcamento-status {
@@ -132,8 +128,7 @@
   padding: 0 7px;
   border: 1px solid;
   font-family: var(--font-mono);
-  font-size: 8px;
-  font-weight: 600;
+  font-size: 12px;  font-weight: 600;
   letter-spacing: .06em;
   text-transform: uppercase;
 }
@@ -163,7 +158,7 @@
   padding: 0;
   background: transparent;
   border: 1px solid rgba(255,255,255,.08);
-  color: #666;
+  color: #888;
   cursor: pointer;
 }
 .orcamento-icon-btn:hover { color: #bbb; border-color: rgba(255,255,255,.16); background: #1d1d1d; }
@@ -223,7 +218,7 @@
 .orcamento-action-menu-icon.reject,
 .orcamento-action-menu-icon.delete { color: var(--color-primary); }
 .orcamento-action-menu strong { display: block; font-size: 11px; font-weight: 600; }
-.orcamento-action-menu small { display: block; margin-top: 2px; color: #555; font-size: 12px; }
+.orcamento-action-menu small { display: block; margin-top: 2px; color: #777; font-size: 12px; }
 
 .orcamentos-loading,
 .orcamentos-empty {
@@ -233,9 +228,8 @@
   justify-content: center;
   flex-direction: column;
   gap: 8px;
-  color: #555;
-  font-size: 11px;
-}
+  color: #777;
+  font-size: 12px;}
 .orcamentos-empty strong {
   color: #888;
   font-family: var(--font-display);
@@ -319,17 +313,6 @@
   font-size: 12px;
   letter-spacing: .14em;
 }
-.budget-modal-close {
-  width: 28px;
-  height: 28px;
-  margin-left: auto;
-  padding: 0;
-  background: transparent;
-  border: 0;
-  color: #555;
-  cursor: pointer;
-  font-size: 20px;
-}
 
 .budget-modal-body {
   max-height: calc(100vh - 200px);
@@ -349,8 +332,7 @@
   margin-bottom: 6px;
   color: var(--color-text-secondary);
   font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: .1em;
+  font-size: 12px;  letter-spacing: .1em;
   text-transform: uppercase;
 }
 .budget-field input,
@@ -364,14 +346,13 @@
   background: #151515;
   color: #c9c9c9;
   outline: none;
-  font-size: 11px;
-}
+  font-size: 12px;}
 .budget-field input:focus,
 .budget-field select:focus,
 .budget-part-row select:focus,
 .budget-part-row input:focus { border-color: #444; }
 .budget-field select:disabled { opacity: .5; cursor: not-allowed; }
-.budget-field small:not(.field-error) { display: block; margin-top: 6px; color: #555; font-size: 12px; }
+.budget-field small:not(.field-error) { display: block; margin-top: 6px; color: #777; font-size: 12px; }
 .field-error { min-height: 13px; display: block; padding-top: 4px; color: #ef4444; font-size: 12px; }
 .field-invalid { border-color: rgba(239,68,68,.62) !important; }
 
@@ -383,7 +364,7 @@
   border-top: 1px solid #242424;
 }
 .budget-parts-heading { display: flex; align-items: flex-end; gap: 12px; }
-.budget-parts-heading p { margin-top: 4px; color: #555; font-size: 12px; }
+.budget-parts-heading p { margin-top: 4px; color: #777; font-size: 12px; }
 .budget-secondary-btn {
   min-height: 30px;
   margin-left: auto;
@@ -392,8 +373,7 @@
   background: transparent;
   color: #888;
   font-family: var(--font-mono);
-  font-size: 8px;
-  letter-spacing: .06em;
+  font-size: 12px;  letter-spacing: .06em;
   cursor: pointer;
 }
 .budget-secondary-btn:hover { color: #ddd; background: #181818; }
@@ -425,7 +405,7 @@
   cursor: pointer;
 }
 .budget-part-remove svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.7; }
-.budget-parts-empty { margin-top: 12px; color: #555; font-size: 10px; }
+.budget-parts-empty { margin-top: 12px; color: #777; font-size: 11px; }
 
 .budget-summary {
   width: min(330px, 100%);
@@ -434,8 +414,8 @@
   border-top: 1px solid #262626;
 }
 .budget-summary > div { display: flex; justify-content: space-between; gap: 20px; padding: 5px 0; }
-.budget-summary span { color: #666; font-size: 10px; }
-.budget-summary strong { color: #cfcfcf; font-family: var(--font-mono); font-size: 10px; }
+.budget-summary span { color: #888; font-size: 11px; }
+.budget-summary strong { color: #cfcfcf; font-family: var(--font-mono); font-size: 11px; }
 .budget-summary-total { margin-top: 5px; padding-top: 10px !important; border-top: 1px solid #2b2b2b; }
 .budget-summary-total span { color: #aaa; font-family: var(--font-display); letter-spacing: .06em; text-transform: uppercase; }
 .budget-summary-total strong { color: #fff; font-size: 14px; }

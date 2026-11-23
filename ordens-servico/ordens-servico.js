@@ -4,6 +4,18 @@ renderHeader('Ordens de Serviço');
 const oficinaId = Session.getOficinaId();
 const VALOR_MAXIMO_OS = 1000000; // R$ 1.000.000,00
 
+/** Rótulos da lista padrão de motivos de cancelamento (valores = enum MotivoCancelamentoOrdemServico do backend). */
+const MOTIVOS_CANCELAMENTO = {
+  ClienteDesistiu: 'Cliente desistiu do serviço',
+  ValorNaoAutorizado: 'Cliente não autorizou o valor',
+  PecaIndisponivel: 'Peça indisponível no fornecedor',
+  DefeitoNaoSolucionado: 'Defeito não identificado ou sem solução',
+  AbertaPorEngano: 'OS aberta por engano',
+  Outro: 'Outro'
+};
+
+const MENSAGEM_OS_BLOQUEADA = 'Somente ordens de serviço abertas podem ser alteradas, fechadas ou canceladas.';
+
 const state = {
   clientesComVeiculo: new Set(), // ids dos clientes que têm ao menos um veículo cadastrado
   ordens: [],
@@ -18,7 +30,10 @@ const state = {
   pecasEditor: [],
   pecasCarregadas: true,
   salvando: false,
-  fechando: false
+  fechando: false,
+  carregandoFechamento: false,
+  pecasFechamento: [], // [{ estoqueId, nomePeca, linhas: [{ valor, quantidade }], lancada, usada }]
+  cancelando: false
 };
 
 const elements = {
@@ -55,9 +70,24 @@ const elements = {
 
   fecharModal: document.getElementById('fecharOsModal'),
   fecharTexto: document.getElementById('fecharOsTexto'),
+  fecharSemCusto: document.getElementById('fecharOsSemCusto'),
+  confirmarSemCusto: document.getElementById('confirmarSemCusto'),
   btnFecharConfirmModal: document.getElementById('btnFecharConfirmModal'),
   btnCancelarFechamento: document.getElementById('btnCancelarFechamento'),
-  btnConfirmarFechamento: document.getElementById('btnConfirmarFechamento')
+  btnConfirmarFechamento: document.getElementById('btnConfirmarFechamento'),
+  fecharPecas: document.getElementById('fecharOsPecas'),
+  fecharPecasLista: document.getElementById('fecharOsPecasLista'),
+  fecharTotal: document.getElementById('fecharOsTotal'),
+  resumoAprovadoLinha: document.getElementById('osResumoAprovadoLinha'),
+  resumoAprovado: document.getElementById('osResumoAprovado'),
+  avisoDivergencia: document.getElementById('osAvisoDivergencia'),
+
+  cancelarModal: document.getElementById('cancelarOsModal'),
+  cancelarTexto: document.getElementById('cancelarOsTexto'),
+  cancelarMotivo: document.getElementById('cancelarOsMotivo'),
+  btnFecharCancelarModal: document.getElementById('btnFecharCancelarModal'),
+  btnVoltarCancelamento: document.getElementById('btnVoltarCancelamento'),
+  btnConfirmarCancelamento: document.getElementById('btnConfirmarCancelamento')
 };
 
 initOs();
@@ -76,14 +106,7 @@ async function carregarClientesComVeiculo() {
 }
 
 function initOs() {
-  if (!oficinaId) {
-    elements.loading.classList.add('hidden');
-    elements.empty.classList.remove('hidden');
-    elements.emptyText.textContent = 'Oficina não identificada na sessão.';
-    elements.btnNova.disabled = true;
-    showToast('Não foi possível identificar a oficina. Faça login novamente.', 'error');
-    return;
-  }
+  if (!Session.exigirLogin()) return;
 
   elements.btnNova.addEventListener('click', abrirModalNovaOs);
   elements.busca.addEventListener('input', (event) => {
@@ -117,14 +140,26 @@ function initOs() {
   elements.btnFecharConfirmModal.addEventListener('click', fecharConfirmModal);
   elements.btnCancelarFechamento.addEventListener('click', fecharConfirmModal);
   elements.btnConfirmarFechamento.addEventListener('click', executarFechamento);
+  elements.confirmarSemCusto.addEventListener('change', atualizarBotaoFechamento);
   elements.fecharModal.addEventListener('click', (event) => {
     if (event.target === elements.fecharModal) fecharConfirmModal();
+  });
+  elements.fecharPecasLista.addEventListener('input', handleQuantidadeUsadaInput);
+
+  preencherMotivosCancelamento();
+  elements.btnFecharCancelarModal.addEventListener('click', fecharCancelarModal);
+  elements.btnVoltarCancelamento.addEventListener('click', fecharCancelarModal);
+  elements.btnConfirmarCancelamento.addEventListener('click', executarCancelamento);
+  elements.cancelarMotivo.addEventListener('change', atualizarBotaoCancelamento);
+  elements.cancelarModal.addEventListener('click', (event) => {
+    if (event.target === elements.cancelarModal) fecharCancelarModal();
   });
 
   document.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
     fecharActionMenu();
-    if (!elements.fecharModal.classList.contains('hidden')) fecharConfirmModal();
+    if (!elements.cancelarModal.classList.contains('hidden')) fecharCancelarModal();
+    else if (!elements.fecharModal.classList.contains('hidden')) fecharConfirmModal();
     else if (!elements.modal.classList.contains('hidden')) fecharModalOs();
   });
 
@@ -151,7 +186,7 @@ async function carregarDadosIniciais() {
     console.error(error);
     state.ordens = [];
     renderOrdens();
-    showToast(getApiErrorMessage(error, 'Não foi possível carregar as ordens de serviço.'), 'error');
+    showToast(ApiErros.mensagem(error, 'Não foi possível carregar as ordens de serviço.'), 'error');
   } finally {
     setListLoading(false);
   }
@@ -163,7 +198,7 @@ async function enriquecerVeiculosDaListagem() {
 
   await Promise.all(clientesIds.map(async (clienteId) => {
     try {
-      const veiculos = await apiRequest(`/oficinas/${oficinaId}/veiculos/${clienteId}`);
+      const veiculos = await apiRequest(`/oficinas/${oficinaId}/clientes/${clienteId}/veiculos`);
       (Array.isArray(veiculos) ? veiculos : []).forEach((veiculo) => mapa.set(String(veiculo.idVeiculo), veiculo));
     } catch (error) {
       console.warn('Não foi possível carregar veículos do cliente', clienteId, error);
@@ -215,7 +250,7 @@ function renderOrdens() {
       <td class="os-cliente" title="${escapeHtml(cliente?.nomeCliente || '')}">${escapeHtml(cliente?.nomeCliente || `Cliente #${os.clienteId}`)}</td>
       <td class="os-veiculo" title="${escapeHtml(formatVeiculoLabel(veiculo))}">${escapeHtml(formatVeiculoLabel(veiculo) || `Veículo #${os.veiculoId}`)}</td>
       <td class="os-data">${escapeHtml(formatDate(os.dataAbertura || os.createdAt))}</td>
-      <td class="os-total">${escapeHtml(Formatters.formatCurrencyBRL(os.valorTotal ?? 0))}</td>
+      <td class="os-total">${renderTotalDaLista(os)}</td>
       <td>${renderStatusBadge(os.status)}</td>
       <td class="os-actions-col">
         <div class="os-row-actions">
@@ -245,8 +280,9 @@ function abrirActionMenu(anchor, os) {
 
   elements.actionMenu.querySelector('[data-os-action="editar"]').classList.toggle('hidden', !aberta);
   elements.actionMenu.querySelector('[data-os-action="fechar"]').classList.toggle('hidden', !aberta);
+  elements.actionMenu.querySelector('[data-os-action="cancelar"]').classList.toggle('hidden', !aberta);
 
-  const visibleCount = aberta ? 3 : 1;
+  const visibleCount = aberta ? 4 : 1;
   const menuWidth = 238;
   const menuHeight = visibleCount * 52 + 10;
   const rect = anchor.getBoundingClientRect();
@@ -274,14 +310,15 @@ function handleActionMenuClick(event) {
   const action = button.dataset.osAction;
   fecharActionMenu();
 
-  if (['editar', 'fechar'].includes(action) && os.status !== 'Aberta') {
-    showToast('Ordens de serviço fechadas não podem mais ser alteradas.', 'warning');
+  if (['editar', 'fechar', 'cancelar'].includes(action) && os.status !== 'Aberta') {
+    showToast(MENSAGEM_OS_BLOQUEADA, 'warning');
     return;
   }
 
   if (action === 'visualizar') abrirModalVisualizar(os);
   else if (action === 'editar') abrirModalEditar(os);
   else if (action === 'fechar') abrirFecharModal(os);
+  else if (action === 'cancelar') abrirCancelarModal(os);
 }
 
 function preencherClientes(apenasAtivos = false) {
@@ -322,14 +359,14 @@ async function carregarVeiculosCliente(clienteId, veiculoSelecionado = null) {
   elements.veiculoId.disabled = true;
   elements.veiculoId.innerHTML = '<option value="">Carregando...</option>';
   try {
-    const veiculos = await apiRequest(`/oficinas/${oficinaId}/veiculos/${clienteId}`);
+    const veiculos = await apiRequest(`/oficinas/${oficinaId}/clientes/${clienteId}/veiculos`);
     state.veiculosDoCliente = Array.isArray(veiculos) ? veiculos : [];
     state.veiculosDoCliente.forEach((veiculo) => state.veiculosMap?.set(String(veiculo.idVeiculo), veiculo));
     preencherVeiculosCliente(veiculoSelecionado);
   } catch (error) {
     state.veiculosDoCliente = [];
     preencherVeiculosCliente();
-    showToast(getApiErrorMessage(error, 'Não foi possível carregar os veículos do cliente.'), 'error');
+    showToast(ApiErros.mensagem(error, 'Não foi possível carregar os veículos do cliente.'), 'error');
   }
 }
 
@@ -371,7 +408,7 @@ function abrirModalNovaOs() {
 
 async function abrirModalEditar(os) {
   if (os.status !== 'Aberta') {
-    showToast('Ordens de serviço fechadas não podem ser editadas.', 'warning');
+    showToast(MENSAGEM_OS_BLOQUEADA, 'warning');
     return;
   }
 
@@ -383,7 +420,7 @@ async function abrirModalEditar(os) {
   elements.btnSalvar.textContent = 'SALVAR';
   elements.statusField.classList.remove('hidden');
   elements.statusBadge.innerHTML = renderStatusBadge(os.status);
-  elements.statusHint.textContent = 'A OS será bloqueada após o fechamento.';
+  elements.statusHint.textContent = 'A OS será bloqueada após o fechamento ou cancelamento.';
 
   elements.clienteId.value = String(os.clienteId ?? '');
   await carregarVeiculosCliente(os.clienteId, os.veiculoId);
@@ -409,9 +446,7 @@ async function abrirModalVisualizar(os) {
   elements.modalTitle.textContent = `Visualizar ${formatOsNumero(os.idOrdemServico)}`;
   elements.statusField.classList.remove('hidden');
   elements.statusBadge.innerHTML = renderStatusBadge(os.status);
-  elements.statusHint.textContent = os.status === 'Fechada'
-    ? `Fechada em ${formatDate(os.dataFechamento)}`
-    : 'Ordem de serviço em andamento.';
+  elements.statusHint.textContent = descreverStatus(os);
 
   elements.clienteId.value = String(os.clienteId ?? '');
   await carregarVeiculosCliente(os.clienteId, os.veiculoId);
@@ -450,6 +485,7 @@ function resetModal() {
   elements.pecasAviso.textContent = '';
   elements.statusField.classList.add('hidden');
   elements.btnSalvar.classList.remove('hidden');
+  state.osEmEdicao = null;
 }
 
 function setFormReadonly(readonly) {
@@ -492,6 +528,7 @@ function normalizeOsPeca(item) {
     quantidade: Number(item.quantidade ?? 0),
     valor: Number(item.valor ?? getEstoqueItem(item.estoqueId)?.precoUnitario ?? 0),
     valorTotal: Number(item.valorTotal ?? (Number(item.quantidade ?? 0) * Number(item.valor ?? 0))),
+    quantidadeOriginal: Number(item.quantidade ?? 0),
     isNew: false
   };
 }
@@ -505,6 +542,7 @@ function adicionarLinhaPeca() {
     quantidade: 1,
     valor: 0,
     valorTotal: 0,
+    quantidadeOriginal: null,
     isNew: true
   });
   renderPecasEditor();
@@ -521,11 +559,14 @@ function renderPecasEditor() {
     const readonly = state.modoModal === 'visualizar' || !state.pecasCarregadas;
 
     row.innerHTML = `
-      <select data-piece-field="estoqueId" data-index="${index}" ${readonly || !item.isNew ? 'disabled' : ''}>
+      <select data-piece-field="estoqueId" data-index="${index}" data-pesquisavel aria-label="Peça do estoque" ${readonly || !item.isNew ? 'disabled' : ''}>
         ${renderEstoqueOptions(item.estoqueId, index)}
       </select>
       <input data-piece-field="quantidade" data-index="${index}" type="number" min="0.01" step="0.01" value="${escapeHtml(formatNumberInput(item.quantidade))}" ${readonly ? 'disabled' : ''}>
-      <span class="os-part-price">${escapeHtml(Formatters.formatCurrencyBRL(calcularSubtotal(item)))}</span>
+      <span class="os-part-price">
+        <span data-piece-subtotal>${escapeHtml(Formatters.formatCurrencyBRL(calcularSubtotal(item)))}</span>
+        <small class="part-unit-price" data-piece-unit>${renderDescricaoPreco(item)}</small>
+      </span>
       <button class="os-part-remove" type="button" data-piece-action="remove" data-index="${index}" aria-label="Remover peça" ${readonly ? 'disabled' : ''}>
         <svg viewBox="0 0 24 24"><path d="M4 7h16"></path><path d="M9 7V4h6v3"></path><path d="M8 11v6"></path><path d="M12 11v6"></path><path d="M16 11v6"></path><path d="M6 7l1 13h10l1-13"></path></svg>
       </button>
@@ -543,6 +584,7 @@ function renderEstoqueOptions(selectedId, currentIndex) {
   let html = '<option value="">Selecione a peça</option>';
   state.estoque.forEach((peca) => {
     const selected = String(peca.estoqueId) === String(selectedId);
+    if (peca.ativa === false && !selected) return; // peça inativa não é oferecida para novas linhas
     const disabled = used.has(String(peca.estoqueId)) && !selected;
     const qtd = formatQuantidadeEstoque(peca.quantidade, peca.unidadeMedida);
     html += `<option value="${peca.estoqueId}" ${selected ? 'selected' : ''} ${disabled ? 'disabled' : ''}>${escapeHtml(peca.nomePeca)} — ${escapeHtml(qtd)}</option>`;
@@ -571,8 +613,11 @@ function handlePecasInput(event) {
   const index = Number(event.target.dataset.index);
   if (field !== 'quantidade' || !Number.isInteger(index) || !state.pecasEditor[index]) return;
   state.pecasEditor[index].quantidade = Number(event.target.value || 0);
-  const price = event.target.closest('.os-part-row')?.querySelector('.os-part-price');
-  if (price) price.textContent = Formatters.formatCurrencyBRL(calcularSubtotal(state.pecasEditor[index]));
+  const row = event.target.closest('.os-part-row');
+  const subtotal = row?.querySelector('[data-piece-subtotal]');
+  const unitario = row?.querySelector('[data-piece-unit]');
+  if (subtotal) subtotal.textContent = Formatters.formatCurrencyBRL(calcularSubtotal(state.pecasEditor[index]));
+  if (unitario) unitario.innerHTML = renderDescricaoPreco(state.pecasEditor[index]);
   atualizarResumo();
 }
 
@@ -603,18 +648,86 @@ function atualizarResumo() {
   elements.resumoPecas.textContent = Formatters.formatCurrencyBRL(totalPecas || 0);
   elements.resumoMaoDeObra.textContent = Formatters.formatCurrencyBRL(maoDeObra || 0);
   elements.resumoTotal.textContent = Formatters.formatCurrencyBRL(totalPecas + maoDeObra);
+  atualizarComparacaoComAprovado(totalPecas + maoDeObra);
+}
+
+/**
+ * OS vinda de orçamento: mostra o valor que o cliente aprovou e avisa quando o total atual é diferente.
+ * É só informativo: a oficina pode incluir ou retirar peças durante o conserto.
+ */
+function atualizarComparacaoComAprovado(totalAtual) {
+  const aprovado = state.osEmEdicao?.valorAprovado;
+  const cancelada = state.osEmEdicao?.status === 'Cancelada'; // nada foi cobrado, não há o que comparar
+  const temAprovado = !cancelada && aprovado !== null && aprovado !== undefined;
+  elements.resumoAprovadoLinha.classList.toggle('hidden', !temAprovado);
+  elements.avisoDivergencia.classList.add('hidden');
+  if (!temAprovado) return;
+
+  elements.resumoAprovado.textContent = Formatters.formatCurrencyBRL(aprovado);
+  const diferenca = arredondar(totalAtual - Number(aprovado));
+  if (diferenca === 0) return;
+  const sentido = diferenca > 0 ? 'acima' : 'abaixo';
+  elements.avisoDivergencia.textContent = `O total está ${Formatters.formatCurrencyBRL(Math.abs(diferenca))} ${sentido} do valor aprovado pelo cliente.`;
+  elements.avisoDivergencia.classList.remove('hidden');
+}
+
+function valorDivergeDoAprovado(os) {
+  if (os.valorAprovado === null || os.valorAprovado === undefined) return false;
+  return arredondar(Number(os.valorTotal ?? 0) - Number(os.valorAprovado)) !== 0;
+}
+
+/** OS cancelada não foi cobrada: o total fica riscado, só como histórico do que estava lançado. */
+function renderTotalDaLista(os) {
+  const total = escapeHtml(Formatters.formatCurrencyBRL(os.valorTotal ?? 0));
+  if (os.status === 'Cancelada') {
+    return `<s class="os-total-cancelado" title="OS cancelada: valor não faturado">${total}</s><small class="os-total-nao-faturado">não faturado</small>`;
+  }
+  return `${total}${renderAprovadoDivergente(os)}`;
+}
+
+function renderAprovadoDivergente(os) {
+  if (!valorDivergeDoAprovado(os)) return '';
+  return `<small class="os-total-aprovado" title="Valor aprovado no orçamento">aprovado ${escapeHtml(Formatters.formatCurrencyBRL(os.valorAprovado))}</small>`;
+}
+
+function arredondar(valor) {
+  return Math.round(Number(valor) * 100) / 100;
+}
+
+function getPrecoAtual(estoqueId) {
+  const estoque = getEstoqueItem(estoqueId);
+  return estoque ? Number(estoque.precoUnitario) : NaN;
 }
 
 function calcularSubtotal(item) {
-  return Number(item.quantidade || 0) * Number(item.valor || 0);
+  const subtotal = PrecificacaoPecas.subtotal(item, getPrecoAtual(item.estoqueId));
+  return Number.isFinite(subtotal) ? subtotal : 0;
+}
+
+function renderDescricaoPreco(item) {
+  if (!item.estoqueId) return '';
+  const { base, destaque } = PrecificacaoPecas.descricao(item, getPrecoAtual(item.estoqueId));
+  return `${escapeHtml(base)}${destaque ? `<span class="preco-atual">${escapeHtml(destaque)}</span>` : ''}`;
+}
+
+/**
+ * Estado final das peças, enviado junto com a OS numa única requisição.
+ * O backend grava tudo (inclusive a movimentação de estoque) numa transação: se algo falhar, nada é salvo.
+ */
+function montarLinhasPecas() {
+  return state.pecasEditor.map((item) => ({
+    idLinha: item.idOsPecas || null,
+    estoqueId: Number(item.estoqueId),
+    quantidade: Number(item.quantidade)
+  }));
 }
 
 async function salvarOs(event) {
   event.preventDefault();
   if (state.salvando || state.modoModal === 'visualizar') return;
 
-  if (state.osEmEdicao?.status === 'Fechada') {
-    showToast('Ordens de serviço fechadas não podem ser alteradas.', 'warning');
+  if (state.osEmEdicao && state.osEmEdicao.status !== 'Aberta') {
+    showToast(MENSAGEM_OS_BLOQUEADA, 'warning');
     return;
   }
 
@@ -635,17 +748,17 @@ async function salvarOs(event) {
   if (state.pecasCarregadas && !validarPecas()) valid = false;
   if (!valid) return;
 
-  const payload = { maoDeObra, descricao };
+  // Peças vão na mesma requisição; null = peças não carregadas, o backend não as altera
+  const payload = { maoDeObra, descricao, pecas: state.pecasCarregadas ? montarLinhasPecas() : null };
   setSaving(true);
 
   try {
     let osSalva;
     if (state.modoModal === 'novo') {
-      osSalva = await apiRequest(`/oficinas/${oficinaId}/ordens-servico/cliente/${clienteId}/veiculo/${veiculoId}`, {
+      osSalva = await apiRequest(`/oficinas/${oficinaId}/ordens-servico`, {
         method: 'POST',
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...payload, clienteId: Number(clienteId), veiculoId: Number(veiculoId) })
       });
-      await sincronizarPecasNovaOs(osSalva.idOrdemServico);
       state.ordens.unshift(osSalva);
       state.veiculosMap?.set(String(veiculoId), state.veiculosDoCliente.find((v) => String(v.idVeiculo) === String(veiculoId)));
       showToast('Ordem de serviço criada com sucesso.', 'success');
@@ -654,7 +767,6 @@ async function salvarOs(event) {
         method: 'PUT',
         body: JSON.stringify(payload)
       });
-      if (state.pecasCarregadas) await sincronizarPecasExistentes(state.osEmEdicao.idOrdemServico);
       replaceOs(osSalva);
       showToast('Ordem de serviço atualizada com sucesso.', 'success');
     }
@@ -664,7 +776,7 @@ async function salvarOs(event) {
     await atualizarListaAposMutacao();
   } catch (error) {
     console.error(error);
-    showToast(getApiErrorMessage(error, 'Não foi possível salvar a ordem de serviço.'), 'error');
+    showToast(ApiErros.mensagem(error, 'Não foi possível salvar a ordem de serviço.'), 'error');
   } finally {
     setSaving(false);
   }
@@ -690,54 +802,127 @@ function validarPecas() {
   return true;
 }
 
-async function sincronizarPecasNovaOs(ordemServicoId) {
-  for (const item of state.pecasEditor) {
-    await apiRequest(`/oficinas/${oficinaId}/ordens-servico/${ordemServicoId}/pecas`, {
-      method: 'POST',
-      body: JSON.stringify({ estoqueId: Number(item.estoqueId), quantidade: Number(item.quantidade) })
-    });
-  }
-}
-
-async function sincronizarPecasExistentes(ordemServicoId) {
-  const originais = new Map(state.pecasOriginais.filter((item) => item.idOsPecas).map((item) => [String(item.idOsPecas), item]));
-  const atuaisIds = new Set(state.pecasEditor.filter((item) => item.idOsPecas).map((item) => String(item.idOsPecas)));
-
-  for (const original of state.pecasOriginais) {
-    if (original.idOsPecas && !atuaisIds.has(String(original.idOsPecas))) {
-      await apiRequest(`/oficinas/${oficinaId}/ordens-servico/${ordemServicoId}/pecas/${original.idOsPecas}`, { method: 'DELETE' });
-    }
-  }
-
-  for (const item of state.pecasEditor) {
-    if (item.isNew || !item.idOsPecas) {
-      await apiRequest(`/oficinas/${oficinaId}/ordens-servico/${ordemServicoId}/pecas`, {
-        method: 'POST',
-        body: JSON.stringify({ estoqueId: Number(item.estoqueId), quantidade: Number(item.quantidade) })
-      });
-      continue;
-    }
-
-    const original = originais.get(String(item.idOsPecas));
-    if (original && Number(original.quantidade) !== Number(item.quantidade)) {
-      await apiRequest(`/oficinas/${oficinaId}/ordens-servico/${ordemServicoId}/pecas/${item.idOsPecas}/quantidade`, {
-        method: 'PATCH',
-        body: JSON.stringify({ quantidade: Number(item.quantidade) })
-      });
-    }
-  }
-}
-
-function abrirFecharModal(os) {
+/**
+ * Fechamento: o usuário confirma quanto de cada peça foi realmente usado (só é possível reduzir).
+ * O que não foi usado volta ao estoque e deixa de ser cobrado. Quando uma peça tem linhas com preços
+ * diferentes, as unidades devolvidas saem das adicionadas por último (mesma regra do backend).
+ */
+async function abrirFecharModal(os) {
   if (os.status !== 'Aberta') {
-    showToast('Esta ordem de serviço já está fechada.', 'warning');
+    showToast(MENSAGEM_OS_BLOQUEADA, 'warning');
     return;
   }
   state.osSelecionada = os;
+  state.pecasFechamento = [];
+  state.carregandoFechamento = true;
   elements.fecharTexto.textContent = `Deseja fechar a ${formatOsNumero(os.idOrdemServico)}?`;
+  elements.confirmarSemCusto.checked = false;
+  renderPecasFechamento();
+  atualizarFechamento();
   elements.fecharModal.classList.remove('hidden');
   elements.fecharModal.setAttribute('aria-hidden', 'false');
   document.body.style.overflow = 'hidden';
+
+  try {
+    const linhas = await apiRequest(`/oficinas/${oficinaId}/ordens-servico/${os.idOrdemServico}/pecas`);
+    state.pecasFechamento = agruparPecasParaFechamento(Array.isArray(linhas) ? linhas : []);
+  } catch (error) {
+    state.carregandoFechamento = false;
+    fecharConfirmModal();
+    showToast(ApiErros.mensagem(error, 'Não foi possível carregar as peças da ordem de serviço.'), 'error');
+    return;
+  }
+  state.carregandoFechamento = false;
+  renderPecasFechamento();
+  atualizarFechamento();
+}
+
+/** Junta as linhas (uma por preço) de cada peça; as linhas ficam na ordem em que foram adicionadas. */
+function agruparPecasParaFechamento(linhas) {
+  const porPeca = new Map();
+  [...linhas]
+    .sort((a, b) => Number(a.idOsPecas) - Number(b.idOsPecas))
+    .forEach((linha) => {
+      const estoqueId = Number(linha.estoqueId);
+      if (!porPeca.has(estoqueId)) {
+        porPeca.set(estoqueId, {
+          estoqueId,
+          nomePeca: linha.nomePeca || getEstoqueItem(estoqueId)?.nomePeca || `Peça #${estoqueId}`,
+          linhas: [],
+          lancada: 0,
+          usada: 0
+        });
+      }
+      const peca = porPeca.get(estoqueId);
+      const quantidade = Number(linha.quantidade ?? 0);
+      peca.linhas.push({ valor: Number(linha.valor ?? 0), quantidade });
+      peca.lancada = arredondar(peca.lancada + quantidade);
+      peca.usada = peca.lancada;
+    });
+  return [...porPeca.values()];
+}
+
+/** Valor cobrado pelas unidades usadas: as primeiras unidades adicionadas são as que ficam na OS. */
+function valorUsado(peca) {
+  let restante = peca.usada;
+  let total = 0;
+  peca.linhas.forEach((linha) => {
+    const unidades = Math.min(restante, linha.quantidade);
+    total += unidades * linha.valor;
+    restante -= unidades;
+  });
+  return total;
+}
+
+function quantidadeUsadaValida(peca) {
+  return Number.isFinite(peca.usada) && peca.usada >= 0 && peca.usada <= peca.lancada;
+}
+
+function renderPecasFechamento() {
+  const pecas = state.pecasFechamento;
+  elements.fecharPecas.classList.toggle('hidden', pecas.length === 0);
+  elements.fecharPecasLista.innerHTML = pecas.map((peca, index) => `
+    <div class="os-fechar-peca">
+      <span class="os-fechar-peca-nome" title="${escapeHtml(peca.nomePeca)}">${escapeHtml(peca.nomePeca)}</span>
+      <span class="os-fechar-peca-lancada">${escapeHtml(formatNumberInput(peca.lancada))}</span>
+      <input data-index="${index}" type="number" min="0" max="${peca.lancada}" step="0.01" value="${escapeHtml(formatNumberInput(peca.usada))}" aria-label="Quantidade usada de ${escapeHtml(peca.nomePeca)}">
+    </div>
+  `).join('');
+}
+
+function handleQuantidadeUsadaInput(event) {
+  const input = event.target.closest('input[data-index]');
+  if (!input) return;
+  const peca = state.pecasFechamento[Number(input.dataset.index)];
+  if (!peca) return;
+  peca.usada = input.value === '' ? NaN : Number(String(input.value).replace(',', '.'));
+  input.classList.toggle('field-invalid', !quantidadeUsadaValida(peca));
+  input.title = quantidadeUsadaValida(peca) ? '' : `Informe de 0 a ${formatNumberInput(peca.lancada)}.`;
+  atualizarFechamento();
+}
+
+function totalDoFechamento() {
+  const maoDeObra = Number(state.osSelecionada?.maoDeObra ?? 0);
+  const pecas = state.pecasFechamento.reduce((soma, peca) => soma + (quantidadeUsadaValida(peca) ? valorUsado(peca) : 0), 0);
+  return arredondar(maoDeObra + pecas);
+}
+
+/** Regra: OS sem valor pode ser fechada (ex.: garantia), mas só com confirmação explícita. */
+function fechamentoSemCusto() {
+  return totalDoFechamento() === 0;
+}
+
+function atualizarFechamento() {
+  const semCusto = !state.carregandoFechamento && fechamentoSemCusto();
+  elements.fecharTotal.textContent = state.carregandoFechamento ? '...' : Formatters.formatCurrencyBRL(totalDoFechamento());
+  elements.fecharSemCusto.classList.toggle('hidden', !semCusto);
+  atualizarBotaoFechamento();
+}
+
+function atualizarBotaoFechamento() {
+  const quantidadesInvalidas = state.pecasFechamento.some((peca) => !quantidadeUsadaValida(peca));
+  const precisaConfirmar = !state.carregandoFechamento && fechamentoSemCusto() && !elements.confirmarSemCusto.checked;
+  elements.btnConfirmarFechamento.disabled = state.fechando || state.carregandoFechamento || quantidadesInvalidas || precisaConfirmar;
 }
 
 function fecharConfirmModal() {
@@ -749,36 +934,124 @@ function fecharConfirmModal() {
 
 async function executarFechamento() {
   const os = state.osSelecionada;
-  if (!os || state.fechando) return;
+  if (!os || state.fechando || state.carregandoFechamento) return;
   if (os.status !== 'Aberta') {
     fecharConfirmModal();
-    showToast('Esta ordem de serviço já está fechada.', 'warning');
+    showToast(MENSAGEM_OS_BLOQUEADA, 'warning');
     return;
   }
+
+  const payload = {
+    pecas: state.pecasFechamento.map((peca) => ({ estoqueId: peca.estoqueId, quantidadeUtilizada: peca.usada })),
+    confirmarSemCusto: fechamentoSemCusto()
+  };
 
   state.fechando = true;
   elements.btnConfirmarFechamento.disabled = true;
   elements.btnConfirmarFechamento.textContent = 'FECHANDO...';
 
   try {
-    const atualizada = await apiRequest(`/oficinas/${oficinaId}/ordens-servico/${os.idOrdemServico}/fechar`, { method: 'POST' });
+    const atualizada = await apiRequest(`/oficinas/${oficinaId}/ordens-servico/${os.idOrdemServico}/fechar`, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
     replaceOs(atualizada);
+    state.fechando = false;
     fecharConfirmModal();
-    renderOrdens();
     showToast('Ordem de serviço fechada com sucesso.', 'success');
+    await atualizarListaAposMutacao();
   } catch (error) {
-    showToast(getApiErrorMessage(error, 'Não foi possível fechar a ordem de serviço.'), 'error');
+    showToast(ApiErros.mensagem(error, 'Não foi possível fechar a ordem de serviço.'), 'error');
   } finally {
     state.fechando = false;
-    elements.btnConfirmarFechamento.disabled = false;
     elements.btnConfirmarFechamento.textContent = 'FECHAR OS';
+    atualizarBotaoFechamento();
   }
+}
+
+// ---------- Cancelamento ----------
+
+function preencherMotivosCancelamento() {
+  Object.entries(MOTIVOS_CANCELAMENTO).forEach(([valor, rotulo]) => {
+    const option = document.createElement('option');
+    option.value = valor;
+    option.textContent = rotulo;
+    elements.cancelarMotivo.appendChild(option);
+  });
+}
+
+function abrirCancelarModal(os) {
+  if (os.status !== 'Aberta') {
+    showToast(MENSAGEM_OS_BLOQUEADA, 'warning');
+    return;
+  }
+  state.osSelecionada = os;
+  elements.cancelarTexto.textContent = `Deseja cancelar a ${formatOsNumero(os.idOrdemServico)}?`;
+  elements.cancelarMotivo.value = '';
+  atualizarBotaoCancelamento();
+  elements.cancelarModal.classList.remove('hidden');
+  elements.cancelarModal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  elements.cancelarMotivo.focus();
+}
+
+function atualizarBotaoCancelamento() {
+  elements.btnConfirmarCancelamento.disabled = state.cancelando || !elements.cancelarMotivo.value;
+}
+
+function fecharCancelarModal() {
+  if (state.cancelando) return;
+  elements.cancelarModal.classList.add('hidden');
+  elements.cancelarModal.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+async function executarCancelamento() {
+  const os = state.osSelecionada;
+  const motivo = elements.cancelarMotivo.value;
+  if (!os || !motivo || state.cancelando) return;
+
+  state.cancelando = true;
+  atualizarBotaoCancelamento();
+  elements.btnConfirmarCancelamento.textContent = 'CANCELANDO...';
+
+  try {
+    const atualizada = await apiRequest(`/oficinas/${oficinaId}/ordens-servico/${os.idOrdemServico}/cancelar`, {
+      method: 'POST',
+      body: JSON.stringify({ motivo })
+    });
+    replaceOs(atualizada);
+    state.cancelando = false;
+    fecharCancelarModal();
+    showToast('Ordem de serviço cancelada. As peças voltaram ao estoque.', 'success');
+    await atualizarListaAposMutacao();
+  } catch (error) {
+    showToast(ApiErros.mensagem(error, 'Não foi possível cancelar a ordem de serviço.'), 'error');
+  } finally {
+    state.cancelando = false;
+    elements.btnConfirmarCancelamento.textContent = 'CANCELAR OS';
+    atualizarBotaoCancelamento();
+  }
+}
+
+function descreverStatus(os) {
+  if (os.status === 'Fechada') return `Fechada em ${formatDate(os.dataFechamento)}`;
+  if (os.status === 'Cancelada') {
+    const motivo = MOTIVOS_CANCELAMENTO[os.motivoCancelamento] || 'motivo não informado';
+    return `Cancelada em ${formatDate(os.dataCancelamento)} · ${motivo} · valor não faturado`;
+  }
+  return 'Ordem de serviço em andamento.';
 }
 
 async function atualizarListaAposMutacao() {
   try {
-    const ordens = await apiRequest(`/oficinas/${oficinaId}/ordens-servico`);
+    // salvar, fechar e cancelar movimentam o estoque: as quantidades usadas nos selects são recarregadas
+    const [ordens, estoque] = await Promise.all([
+      apiRequest(`/oficinas/${oficinaId}/ordens-servico`),
+      apiRequest(`/oficinas/${oficinaId}/pecas`)
+    ]);
     state.ordens = Array.isArray(ordens) ? ordens : [];
+    state.estoque = Array.isArray(estoque) ? estoque : state.estoque;
     await enriquecerVeiculosDaListagem();
   } catch (error) {
     console.warn('Não foi possível recarregar as ordens:', error);
@@ -861,7 +1134,7 @@ function formatQuantidadeEstoque(value, unidade) {
 }
 
 function renderStatusBadge(status) {
-  const safe = status === 'Fechada' ? 'Fechada' : 'Aberta';
+  const safe = ['Aberta', 'Fechada', 'Cancelada'].includes(status) ? status : 'Aberta';
   return `<span class="os-status ${safe}">${safe}</span>`;
 }
 
@@ -897,12 +1170,6 @@ function clearFieldError(id) {
 function clearAllErrors() {
   document.querySelectorAll('.field-invalid').forEach((field) => field.classList.remove('field-invalid'));
   document.querySelectorAll('.field-error').forEach((error) => { error.textContent = ''; });
-}
-
-function getApiErrorMessage(error, fallback) {
-  if (error?.body?.message) return error.body.message;
-  if (error?.message && error.message !== 'Failed to fetch') return error.message;
-  return fallback;
 }
 
 function iconEdit() {
